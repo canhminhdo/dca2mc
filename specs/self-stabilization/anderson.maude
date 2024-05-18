@@ -1,0 +1,246 @@
+***
+***      Start Section
+***  ss: place[i] := fetch&incmode(next, N);
+***  ws: repeat until array[place[i]];
+***      Critical Section
+***  cs: array[place[i]], array[(place[i]+1) % N] := false, true;
+***       Finish Section
+***  fs: ...
+***
+
+fmod LOC is
+    sort Loc .
+    ops ss ws cs fs : -> Loc [ctor] .
+endfm
+
+fmod PID is
+    sort Pid .
+    ops p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15 : -> Pid [ctor] .
+endfm
+
+fmod SOUP {D :: TRIV} is
+    sort Soup{D} .
+    subsort D$Elt < Soup{D} .
+    op empty : -> Soup{D} [ctor] .
+    op _ _ : Soup{D} Soup{D} -> Soup{D} [ctor assoc comm id: empty] .
+endfm
+
+fmod NAT+DEC is
+    pr NAT .
+    op dec : Nat -> Nat .
+    var N : Nat .
+    eq dec(0) = 0 .
+    eq dec(s(N)) = N .
+endfm
+
+fmod OCOMP is
+    pr PID .
+    pr LOC .
+    pr NAT+DEC .
+    sort OComp .
+    op pc[_]:_ : Pid Loc -> OComp [ctor] .
+    op place[_]:_ : Pid Nat -> OComp [ctor] .
+    op next:_ : Nat -> OComp [ctor] .
+    op array[_]:_ : Nat Bool -> OComp [ctor] .
+    op (abnorm:_) :  Bool -> OComp [ctor] .
+endfm
+
+view OComp from TRIV to OCOMP is
+    sort Elt to OComp .
+endv
+
+fmod CONFIG is
+    pr SOUP{OComp} .
+    sort Config .
+    op {_} : Soup{OComp} -> Config [ctor] .
+    ***
+    op isAbnorm : Soup{OComp} -> Bool .
+    op inWsCs : Soup{OComp} -> Bool .
+    op reset : Soup{OComp} -> Soup{OComp} .
+    vars I J : Pid .
+    var X : Nat .
+    var B : Bool .
+    var OCs : Soup{OComp} .
+    eq isAbnorm((pc[I]: cs) (pc[J]: cs) OCs) = true .
+    eq isAbnorm(OCs) = false [owise] .
+    eq inWsCs((pc[I]: ws) OCs) = true .
+    eq inWsCs((pc[I]: cs) OCs) = true .
+    eq inWsCs(OCs) = false .
+    eq reset((next: X) OCs) = (next: 0) reset(OCs) .
+    eq reset((array[X]: B) OCs) = (if X == 0 then (array[X]: true) else (array[X]: false) fi) reset(OCs) .
+    eq reset(OCs) = OCs [owise] .
+    ***
+    *** Parameters
+    op N : -> NzNat .
+    eq N = 6 .
+    ***
+    op ainit5 : -> Config .
+    eq ainit5 = {(pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss) (pc[p4]: ss) (pc[p5]: ss)
+                (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0)
+                (array[0]: true) (array[1]: true) (array[2]: true) (array[3]: true) (array[4]: true)
+                (next: 0) (abnorm: false)} .
+
+    op ainit6 : -> Config .
+    eq ainit6 = {(pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss) (pc[p4]: ss) (pc[p5]: ss)
+                (pc[p6]: ss)
+                (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0)
+                (place[p6]: 0)
+                (array[0]: true) (array[1]: true) (array[2]: true) (array[3]: true) (array[4]: true)
+                (array[5]: true)
+                (next: 0) (abnorm: false)} .
+
+    op ainit7 : -> Config .
+    eq ainit7 = {(pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss) (pc[p4]: ss) (pc[p5]: ss)
+                (pc[p6]: ss) (pc[p7]: ss)
+                (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0)
+                (place[p6]: 0) (place[p7]: 0)
+                (array[0]: true) (array[1]: true) (array[2]: true) (array[3]: true) (array[4]: true)
+                (array[5]: true) (array[6]: true)
+                (next: 0) (abnorm: false)} .
+
+    op ainit8 : -> Config .
+    eq ainit8 = {(pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss) (pc[p4]: ss) (pc[p5]: ss)
+                (pc[p6]: ss) (pc[p7]: ss) (pc[p8]: ss)
+                (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0)
+                (place[p6]: 0) (place[p7]: 0) (place[p8]: 0)
+                (array[0]: true) (array[1]: true) (array[2]: true) (array[3]: true) (array[4]: true)
+                (array[5]: true) (array[6]: true) (array[7]: true)
+                (next: 0) (abnorm: false)} .
+
+    op ainit9 : -> Config .
+    eq ainit9 = {(pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss) (pc[p4]: ss) (pc[p5]: ss)
+                (pc[p6]: ss) (pc[p7]: ss) (pc[p8]: ss) (pc[p9]: ss)
+                (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0)
+                (place[p6]: 0) (place[p7]: 0) (place[p8]: 0) (place[p9]: 0)
+                (array[0]: true) (array[1]: true) (array[2]: true) (array[3]: true) (array[4]: true)
+                (array[5]: true) (array[6]: true) (array[7]: true) (array[8]: true)
+                (next: 0) (abnorm: false)} .
+
+    op ainit10 : -> Config .
+    eq ainit10 = {(pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss) (pc[p4]: ss) (pc[p5]: ss)
+                (pc[p6]: ss) (pc[p7]: ss) (pc[p8]: ss) (pc[p9]: ss) (pc[p10]: ss)
+                (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0)
+                (place[p6]: 0) (place[p7]: 0) (place[p8]: 0) (place[p9]: 0) (place[p10]: 0)
+                (array[0]: true) (array[1]: true) (array[2]: true) (array[3]: true) (array[4]: true)
+                (array[5]: true) (array[6]: true) (array[7]: true) (array[8]: true) (array[9]: true)
+                (next: 0) (abnorm: false)} .
+    
+    op ainit11 : -> Config .
+    eq ainit11 = {(pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss) (pc[p4]: ss) (pc[p5]: ss)
+                (pc[p6]: ss) (pc[p7]: ss) (pc[p8]: ss) (pc[p9]: ss) (pc[p10]: ss)
+                (pc[p11]: ss)
+                (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0)
+                (place[p6]: 0) (place[p7]: 0) (place[p8]: 0) (place[p9]: 0) (place[p10]: 0)
+                (place[p11]: 0)
+                (array[0]: true) (array[1]: true) (array[2]: true) (array[3]: true) (array[4]: true)
+                (array[5]: true) (array[6]: true) (array[7]: true) (array[8]: true) (array[9]: true)
+                (array[10]: true)
+                (next: 0) (abnorm: false)} .
+
+    op ainit12 : -> Config .
+    eq ainit12 = {(pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss) (pc[p4]: ss) (pc[p5]: ss)
+                (pc[p6]: ss) (pc[p7]: ss) (pc[p8]: ss) (pc[p9]: ss) (pc[p10]: ss)
+                (pc[p11]: ss) (pc[p12]: ss)
+                (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0)
+                (place[p6]: 0) (place[p7]: 0) (place[p8]: 0) (place[p9]: 0) (place[p10]: 0)
+                (place[p11]: 0) (place[p12]: 0)
+                (array[0]: true) (array[1]: true) (array[2]: true) (array[3]: true) (array[4]: true)
+                (array[5]: true) (array[6]: true) (array[7]: true) (array[8]: true) (array[9]: true)
+                (array[10]: true) (array[11]: true)
+                (next: 0) (abnorm: false)} .
+
+    op ainit13 : -> Config .
+    eq ainit13 = {(pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss) (pc[p4]: ss) (pc[p5]: ss)
+                (pc[p6]: ss) (pc[p7]: ss) (pc[p8]: ss) (pc[p9]: ss) (pc[p10]: ss)
+                (pc[p11]: ss) (pc[p12]: ss) (pc[p13]: ss)
+                (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0)
+                (place[p6]: 0) (place[p7]: 0) (place[p8]: 0) (place[p9]: 0) (place[p10]: 0)
+                (place[p11]: 0) (place[p12]: 0) (place[p13]: 0)
+                (array[0]: true) (array[1]: true) (array[2]: true) (array[3]: true) (array[4]: true)
+                (array[5]: true) (array[6]: true) (array[7]: true) (array[8]: true) (array[9]: true)
+                (array[10]: true) (array[11]: true) (array[12]: true)
+                (next: 0) (abnorm: false)} .
+    
+    op ainit14 : -> Config .
+    eq ainit14 = {(pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss) (pc[p4]: ss) (pc[p5]: ss)
+                (pc[p6]: ss) (pc[p7]: ss) (pc[p8]: ss) (pc[p9]: ss) (pc[p10]: ss)
+                (pc[p11]: ss) (pc[p12]: ss) (pc[p13]: ss) (pc[p14]: ss)
+                (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0)
+                (place[p6]: 0) (place[p7]: 0) (place[p8]: 0) (place[p9]: 0) (place[p10]: 0)
+                (place[p11]: 0) (place[p12]: 0) (place[p13]: 0) (place[p14]: 0)
+                (array[0]: true) (array[1]: true) (array[2]: true) (array[3]: true) (array[4]: true)
+                (array[5]: true) (array[6]: true) (array[7]: true) (array[8]: true) (array[9]: true)
+                (array[10]: true) (array[11]: true) (array[12]: true) (array[13]: true)
+                (next: 0) (abnorm: false)} .
+
+    op ainit15 : -> Config .
+    eq ainit15 = {(pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss) (pc[p4]: ss) (pc[p5]: ss)
+                (pc[p6]: ss) (pc[p7]: ss) (pc[p8]: ss) (pc[p9]: ss) (pc[p10]: ss)
+                (pc[p11]: ss) (pc[p12]: ss) (pc[p13]: ss) (pc[p14]: ss) (pc[p15]: ss)
+                (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0)
+                (place[p6]: 0) (place[p7]: 0) (place[p8]: 0) (place[p9]: 0) (place[p10]: 0)
+                (place[p11]: 0) (place[p12]: 0) (place[p13]: 0) (place[p14]: 0) (place[p15]: 0)
+                (array[0]: true) (array[1]: true) (array[2]: true) (array[3]: true) (array[4]: true)
+                (array[5]: true) (array[6]: true) (array[7]: true) (array[8]: true) (array[9]: true)
+                (array[10]: true) (array[11]: true) (array[12]: true) (array[13]: true) (array[14]: true)
+                (next: 0) (abnorm: false)} .
+endfm
+
+mod ANDERSON is
+    inc CONFIG .
+    *** Maude variables
+    vars I J K : Pid .
+    vars X Y X1 M : Nat .
+    vars B B1 B2 : Bool .
+    vars L1 L2 L3 : Loc .
+    var OCs : Soup{OComp} .
+    *** Rewrite rules
+    crl [detect] : {(abnorm: false) OCs} => {(abnorm: true) OCs} if isAbnorm(OCs) .
+    crl [reset] : {(abnorm: true) OCs} => {(abnorm: false) reset(OCs)} if not isAbnorm(OCs) /\ not inWsCs(OCs) .
+    rl [start] : {(pc[I]: ss) (place[I]: X) (next: Y) (abnorm: false) OCs}
+    => {(pc[I]: ws) (place[I]: Y) (next: ((Y + 1) rem N)) (abnorm: false) OCs} .
+    rl [wait] : {(pc[I]: ws) (place[I]: X) (array[X]: true) (abnorm: false) OCs}
+    => {(pc[I]: cs) (place[I]: X) (array[X]: true) (abnorm: false) OCs} .
+    rl [abort1] : {(pc[I]: ws) (abnorm: true) OCs} => {(pc[I]: fs) (abnorm: true) OCs} .
+    crl [exit] : {(pc[I]: cs) (place[I]: X) (array[X]: B1) (array[X1]: B2) (abnorm: false) OCs}
+    => {(pc[I]: fs) (place[I]: X) (array[X]: false) (array[X1]: true) (abnorm: false) OCs}
+    if X1 = (X + 1) rem  N .
+    rl [abort2] : {(pc[I]: cs) (abnorm: true) OCs} => {(pc[I]: fs) (abnorm: true) OCs} .
+endm
+
+in model-checker .
+
+mod ANDERSON-PREDS is
+    pr ANDERSON .
+    inc SATISFACTION .
+    subsort Config < State .
+    ops inCs1 inCs2 inAbnorm : -> Prop .
+    var OCs : Soup{OComp} .
+    var PROP : Prop .
+    eq {(pc[p1]: cs) OCs} |= inCs1 = true .
+    eq {(pc[p2]: cs) OCs} |= inCs2 = true .
+    eq {(abnorm: true) OCs} |= inAbnorm = true .
+    eq {OCs} |= PROP = false [owise] .
+endm
+
+mod ANDERSON-CHECK is
+    inc ANDERSON-PREDS .
+    inc MODEL-CHECKER .
+    inc LTL-SIMPLIFIER .
+
+    ops cstable : -> Formula .
+    eq cstable = inAbnorm |-> ([] ~ (inCs1 /\ inCs2)) .
+endm
+
+***(
+search in ANDERSON : ainit5 =>* {OCs} such that false .
+search in ANDERSON : ainit5 =>* {(array[1]: false) (array[2]: false) (pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss) OCs} .
+search in ANDERSON : ainit5 =>* {(abnorm: true) OCs} .
+search [1] in ANDERSON : ainit5 =>* {(abnorm: true) OCs} .
+search [1] in ANDERSON : ainit5 =>* {(pc[p1]: cs) OCs} .
+search [1] in ANDERSON : ainit5 =>* {(pc[p2]: cs) OCs} .
+red in ANDERSON-CHECK : modelCheck(ainit5,[] (~ (inCs1 /\ inCs2))) .
+red in ANDERSON-CHECK : modelCheck(ainit5,inAbnorm |-> ([] ~ (inCs1 /\ inCs2))) .
+red in ANDERSON-CHECK : modelCheck(ainit5,inAbnorm |-> ([] ~ inAbnorm)) .
+red in ANDERSON-CHECK : modelCheck(ainit5,inAbnorm |-> ([] inAbnorm)) .
+)***

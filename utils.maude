@@ -1,0 +1,125 @@
+view TermList from TRIV to META-TERM is 
+    sort Elt to TermList .
+endv
+
+fmod TERM-LIST-SET is
+    pr META-LEVEL .
+
+    sorts NeTermListSet TermListSet .
+    subsort TermList < NeTermListSet < TermListSet .
+
+    op emptyTLS : -> TermListSet [ctor] .
+    op _||_ : TermListSet TermListSet -> TermListSet [ctor assoc comm id: emptyTLS] .
+    op _||_ : NeTermListSet TermListSet -> NeTermListSet [ctor ditto] .
+    
+    vars NeTLS : NeTermListSet .
+    
+    --- eq NeTLS || NeTLS = NeTLS .
+
+    --- pr SET{TermList} * (
+    ---     sort NeSet{TermList} to NeTermListSet, 
+    ---     sort Set{TermList} to TermListSet, 
+    ---     op empty : -> Set{TermList} to emptyTLS,
+    ---     op _,_ : Set{TermList} Set{TermList} -> Set{TermList} to _:_,
+    ---     op _,_ : NeSet{TermList} Set{TermList} -> NeSet{TermList} to _:_
+    --- ) .
+endfm
+
+fmod DCA2MC-UTILS is
+    pr META-LEVEL .
+    pr FM-TERMSET .
+    pr CONVERSION .
+    pr TERM-LIST-SET .
+    pr EXT-BOOL .
+
+    sort Bool? .
+    subsort Bool < Bool? .
+
+    op unknown : -> Bool? [ctor] .
+    eq not unknown = unknown .
+
+    vars M : Module .
+    vars OPDS : OpDeclSet .
+    vars TyL : TypeList .
+    vars Ty : Type .
+    vars AS : AttrSet .
+    vars QI : Qid .
+    vars T T' VAR : Term .
+    vars TL : TermList .
+    vars TLS TLS' : TermListSet .
+    vars Ct : Constant .
+    vars RT : ResultTriple .
+    vars N : Nat .
+    vars TS : TermSet .
+    vars B? : Bool? .
+
+    --- size of term set
+    op size : TermSet -> Nat .
+    eq size(T | TS) = size(TS) + 1 .
+    eq size(emptyTermSet) = 0 .
+    
+    --- extract type of a given qid
+    op extractType : Module Qid -> Type? .
+    op extractType : OpDeclSet Qid -> Type? .
+    eq extractType(M, QI) = extractType(getOps(M), QI) .
+    eq extractType(
+        (op QI : TyL -> Ty [ AS ] .) OPDS
+    , QI) = Ty .
+    eq extractType(OPDS, QI) = anyType [owise] .
+
+    --- check a valid module
+    op isModule : Qid -> Bool .
+    eq isModule(QI) = upModule(QI, false) :: Module .
+
+    --- build term from qit and its type
+    op buildTerm : Qid Type -> Term .
+    eq buildTerm(QI, Ty) = qid(string(QI) + "." + string(Ty)) .
+
+    --- extract atomic propositions
+    op extractAtoms : Term -> TermSet .
+    eq extractAtoms(QI[TL]) = extractAtoms(TL) .
+    ceq extractAtoms((T, TL)) = extractAtoms(T) | extractAtoms(TL) if TL =/= empty .
+    eq extractAtoms(Ct) = if getType(Ct) == 'Prop then Ct else emptyTermSet fi .
+    eq extractAtoms(empty) = emptyTermSet .
+
+    --- getVarTerm
+    op getVarTerm : Type -> Term .
+    eq getVarTerm(Ty) = qid("VAR-" + string(Ty) + ":" + string(Ty)) .
+
+    --- generate state sequences
+    op genSeqs   : Module Term Term Nat                     -> TermListSet .
+    op genSeqs*  : Module Term Term Nat TermList            -> TermListSet .
+    op genSeqs** : Module Term Term Nat TermList TermSet    -> TermListSet .
+    
+    eq genSeqs(M, T, VAR, N) = genSeqs*(M, T, VAR, N, T) .
+    ceq genSeqs*(M, T, VAR, N, TL) = genSeqs**(M, T, VAR, N, TL, getAllSuccessors(M, T, VAR))
+    if N > 0 .
+    eq genSeqs*(M, T, VAR, 0, TL) = TL .
+
+    --- precondition: N > 0
+    eq genSeqs**(M, T, VAR, N, TL, (T' | TS)) = genSeqs*(M, T', VAR, sd(N, 1), (TL , T')) || genSeqs**(M, T, VAR, N, TL, TS) .
+    eq genSeqs**(M, T, VAR, N, TL, emptyTermSet) = emptyTLS .
+
+    --- get all successors states
+    op getAllSuccessors : Module Term Term -> TermSet .
+    op getAllSuccessors* : Module Term Term Nat ResultTriple? -> TermSet .
+    eq getAllSuccessors(M, T, VAR) = getAllSuccessors*(
+        M, T, VAR, 0,
+        metaSearch(M, T, VAR, nil, '+, 1, 0)
+    ) .
+
+    eq getAllSuccessors*(M, T, VAR, N, failure) = emptyTermSet .
+    eq getAllSuccessors*(M, T, VAR, N, RT) = getTerm(RT) | getAllSuccessors*(
+        M, T, VAR, N + 1,
+        metaSearch(M, T, VAR, nil, '+, 1, N + 1)
+    ) .
+
+    --- check satisfiablity
+    op checkSat : Module Term Term -> Bool? .
+    op checkSatResult : Term -> Bool? .
+    eq checkSat(M, T, Ct) = checkSatResult(getTerm(metaReduce(M, '_|=_[T, Ct]))) .
+    eq checkSatResult('false.Bool) = false .
+    eq checkSatResult('true.Bool) = true .
+    eq checkSatResult(T) = unknown [owise] .
+    eq checkSat(M, T, '~_[Ct]) = not checkSat(M, T, Ct) .
+endfm

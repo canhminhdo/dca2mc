@@ -1,0 +1,89 @@
+fmod LOC is
+    sort Loc .
+    ops rs ws cs : -> Loc [ctor] .
+endfm
+
+fmod PID is
+    sort Pid .
+    ops p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 : -> Pid [ctor] .
+endfm
+
+fmod SOUP {D :: TRIV} is
+    sort Soup{D} .
+    subsort D$Elt < Soup{D} .
+    op empty : -> Soup{D} [ctor] .
+    op _ _ : Soup{D} Soup{D} -> Soup{D} [ctor assoc comm id: empty] .
+endfm
+
+fmod OCOMP is
+    pr LOC .
+    pr PID .
+    pr NAT .
+    sort OComp .
+    op (pc[_]:_) : Pid Loc -> OComp [ctor] .
+    op (ticket[_]:_) : Pid Nat -> OComp [ctor] .
+    op (next:_) : Nat -> OComp [ctor] .
+    op (serve:_) : Nat -> OComp [ctor] .
+endfm
+
+view OComp from TRIV to OCOMP is
+    sort Elt to OComp .
+endv
+
+fmod CONFIG is
+    pr SOUP{OComp} .
+    sort Config .
+    op {_} : Soup{OComp} -> Config [ctor] .
+    op init : -> Config .
+    op init5 : -> Config .
+    op init10 : -> Config .
+    eq init = {(pc[p1]: rs) (pc[p2]: rs)
+            (ticket[p1]: 0) (ticket[p2]: 0)
+            (next: 0) (serve: 0)} .
+    eq init5 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs)
+            (ticket[p1]: 0) (ticket[p2]: 0) (ticket[p3]: 0) (ticket[p4]: 0) (ticket[p5]: 0)
+            (next: 0) (serve: 0)} .
+    eq init10 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs) (pc[p6]: rs) (pc[p7]: rs) (pc[p8]: rs) (pc[p9]: rs) (pc[p10]: rs)
+            (ticket[p1]: 0) (ticket[p2]: 0) (ticket[p3]: 0) (ticket[p4]: 0) (ticket[p5]: 0) (ticket[p6]: 0) (ticket[p7]: 0) (ticket[p8]: 0) (ticket[p9]: 0) (ticket[p10]: 0)
+            (next: 0) (serve: 0)} .
+endfm
+
+mod TICKET is
+    inc CONFIG .
+
+    var I : Pid .
+    vars N N1 : Nat .
+    var OCs : Soup{OComp} .
+
+    rl [inc&setTicket] : {(pc[I]: rs) (next: N) (ticket[I]: N1) OCs} => {(pc[I]: ws) (next: ((N + 1) rem 2)) (ticket[I]: N) OCs}.
+    rl [wait] : {(pc[I]: ws) (ticket[I]: N) (serve: N) OCs} => {(pc[I]: cs) (ticket[I]: N) (serve: N) OCs} .
+    rl [exit] : {(pc[I]: cs) (serve: N) OCs} => {(pc[I]: rs) (serve: ((N + 1) rem 2)) OCs} .
+endm
+
+in model-checker .
+
+mod TICKET-PREDS is
+    pr TICKET .
+    inc SATISFACTION .
+    subsort Config < State .
+    ops inWs1 inCs1 : -> Prop .
+    var OCs : Soup{OComp} .
+    var PROP : Prop .
+    eq {(pc[p1]: ws) OCs} |= inWs1 = true .
+    eq {(pc[p1]: cs) OCs} |= inCs1 = true .
+    eq {OCs} |= PROP = false [owise] .
+endm
+
+mod TICKET-CHECK is
+    inc TICKET-PREDS .
+    inc MODEL-CHECKER .
+    inc LTL-SIMPLIFIER .
+    op cstable : -> Formula .
+    eq cstable = inWs1 |-> [] inFs1 .
+endm
+
+***(
+    red in TICKET-CHECK : modelCheck(init,lofree1) .
+    red in TICKET-CHECK : modelCheck(init5,lofree1) .
+    red in TICKET-CHECK : modelCheck(init10,lofree1) .
+)

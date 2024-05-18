@@ -1,0 +1,376 @@
+***
+*** Edsger W. Dijkstra - Self-stabilization
+*** K-state Machines (K > N)
+*** N + 1 is the number of machines with ids range [0;N]
+*** [0;K) is the range of the value of machines
+*** pc[0] is called the bottom machine
+***
+
+fmod SOUP{D :: TRIV} is
+    sort Soup{D} .
+    subsort D$Elt < Soup{D} .
+    op empty : -> Soup{D} [ctor] .
+    op __ : Soup{D} Soup{D} -> Soup{D} [ctor assoc comm id: empty] .
+endfm
+
+fmod OCOMP is
+    pr NAT .
+    sort OComp .
+    op (pc[_]:_) : Nat Nat -> OComp [ctor] .
+    op (#pc:_) : Nat -> OComp [ctor] .
+    op (k-states:_) : Nat -> OComp [ctor] .
+    op (#errors:_) : Nat -> OComp [ctor] .
+endfm
+
+view OComp from TRIV to OCOMP is
+    sort Elt to OComp .
+endv
+
+fmod CONFIG is
+    pr SOUP{OComp} .
+    sort Config .
+    op {_} : Soup{OComp} -> Config [ctor] .
+    ops init init5 init6 init7 init8 init9 init10 init11 init12 init13 init14 init15 init16 init17 init18 init19 init20 init30 init40 init50 : -> Config .
+    ops ainit ainit5 ainit6 ainit7 ainit8 ainit9 ainit10 ainit11 ainit12 ainit13 ainit14 ainit15 ainit16 ainit17 ainit18 ainit19 ainit20 ainit30 ainit40 ainit50 : -> Config .
+    
+    eq init = { (k-states: 5) (#errors: 1)
+                (#pc: 4)
+                (pc[0]: 0) (pc[1]: 0) (pc[2]: 0) (pc[3]: 0) } .
+
+    eq ainit = { (k-states: 5) (#errors: 1)
+                (#pc: 4)
+                (pc[0]: 0) (pc[1]: 2) (pc[2]: 2) (pc[3]: 0) } .
+
+    eq init5 = { (k-states: 6) (#errors: 1)
+                (#pc: 5)
+                (pc[0]: 0) (pc[1]: 0) (pc[2]: 0) (pc[3]: 0)
+                (pc[4]: 0)
+            } .
+
+    eq ainit5 = { (k-states: 6) (#errors: 1)
+                (#pc: 5)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4)
+            } .
+
+    eq init6 = { (k-states: 7) (#errors: 1)
+                (#pc: 6)
+                (pc[0]: 0) (pc[1]: 0) (pc[2]: 0) (pc[3]: 0)
+                (pc[4]: 0) (pc[5]: 0)
+            } .
+
+    eq ainit6 = { (k-states: 7) (#errors: 1)
+                (#pc: 6)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5)
+            } .
+
+    eq init7 = { (k-states: 8) (#errors: 1)
+                (#pc: 7)
+                (pc[0]: 0) (pc[1]: 0) (pc[2]: 0) (pc[3]: 0)
+                (pc[4]: 0) (pc[5]: 0) (pc[6]: 0)
+            } .
+
+    eq ainit7 = { (k-states: 8) (#errors: 1)
+                (#pc: 7)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6)
+            } .
+
+    eq init8 = { (k-states: 9) (#errors: 1)
+                (#pc: 8)
+                (pc[0]: 0) (pc[1]: 0) (pc[2]: 0) (pc[3]: 0)
+                (pc[4]: 0) (pc[5]: 0) (pc[6]: 0) (pc[7]: 0)
+            } .
+
+    eq ainit8 = { (k-states: 9) (#errors: 1)
+                (#pc: 8)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+            } .
+    
+    eq init9 = { (k-states: 10) (#errors: 1)
+                (#pc: 9)
+                (pc[0]: 0) (pc[1]: 0) (pc[2]: 0) (pc[3]: 0)
+                (pc[4]: 0) (pc[5]: 0) (pc[6]: 0) (pc[7]: 0)
+                (pc[8]: 0)
+            } .
+
+    eq ainit9 = { (k-states: 10) (#errors: 1)
+                (#pc: 9)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8)
+            } .
+
+    eq init10 = { (k-states: 11) (#errors: 1)
+                (#pc: 10)
+                (pc[0]: 0) (pc[1]: 0) (pc[2]: 0) (pc[3]: 0)
+                (pc[4]: 0) (pc[5]: 0) (pc[6]: 0) (pc[7]: 0)
+                (pc[8]: 0) (pc[9]: 0)
+            } .
+
+    eq ainit10 = { (k-states: 11) (#errors: 1)
+                (#pc: 10)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 0)
+            } .
+
+    eq init11 = { (k-states: 12) (#errors: 1)
+                (#pc: 11)
+                (pc[0]: 0) (pc[1]: 0) (pc[2]: 0) (pc[3]: 0)
+                (pc[4]: 0) (pc[5]: 0) (pc[6]: 0) (pc[7]: 0)
+                (pc[8]: 0) (pc[9]: 0) (pc[10]: 0)
+            } .
+
+    eq ainit11 = { (k-states: 12) (#errors: 1)
+                (#pc: 11)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10)
+            } .
+
+    eq init12 = { (k-states: 13) (#errors: 1)
+                (#pc: 12)
+                (pc[0]: 0) (pc[1]: 0) (pc[2]: 0) (pc[3]: 0)
+                (pc[4]: 0) (pc[5]: 0) (pc[6]: 0) (pc[7]: 0)
+                (pc[8]: 0) (pc[9]: 0) (pc[10]: 0) (pc[11]: 0)
+            } .
+
+    eq ainit12 = { (k-states: 13) (#errors: 1)
+                (#pc: 12)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10) (pc[11]: 11)
+            } .
+
+    eq init13 = { (k-states: 14) (#errors: 1)
+                (#pc: 13)
+                (pc[0]: 0) (pc[1]: 0) (pc[2]: 0) (pc[3]: 0)
+                (pc[4]: 0) (pc[5]: 0) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 0) (pc[9]: 0) (pc[10]: 0) (pc[11]: 0)
+                (pc[12]: 0)
+            } .
+
+    eq ainit13 = { (k-states: 14) (#errors: 1)
+                (#pc: 13)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10) (pc[11]: 11)
+                (pc[12]: 12)
+            } .
+
+    eq init14 = { (k-states: 15) (#errors: 1)
+                (#pc: 14)
+                (pc[0]: 0) (pc[1]: 0) (pc[2]: 0) (pc[3]: 0)
+                (pc[4]: 0) (pc[5]: 0) (pc[6]: 0) (pc[7]: 0)
+                (pc[8]: 0) (pc[9]: 0) (pc[10]: 0) (pc[11]: 0)
+                (pc[12]: 0) (pc[13]: 0)
+            } .
+
+    eq ainit14 = { (k-states: 15) (#errors: 1)
+                (#pc: 14)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10) (pc[11]: 11)
+                (pc[12]: 12) (pc[13]: 13)
+            } .
+
+    eq init15 = { (k-states: 16) (#errors: 1)
+                (#pc: 15)
+                (pc[0]: 0) (pc[1]: 0) (pc[2]: 0) (pc[3]: 0)
+                (pc[4]: 0) (pc[5]: 0) (pc[6]: 0) (pc[7]: 0)
+                (pc[8]: 0) (pc[9]: 0) (pc[10]: 0) (pc[11]: 0)
+                (pc[12]: 0) (pc[13]: 0) (pc[14]: 0)
+            } .
+
+     eq ainit15 = { (k-states: 16) (#errors: 1)
+                (#pc: 15)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10) (pc[11]: 11)
+                (pc[12]: 12) (pc[13]: 13) (pc[14]: 0)
+            } .
+
+    eq init16 = { (k-states: 17) (#errors: 1)
+                (#pc: 16)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10) (pc[11]: 11)
+                (pc[12]: 12) (pc[13]: 13) (pc[14]: 14) (pc[15]: 15)
+            } .
+            
+    eq init17 = { (k-states: 18) (#errors: 1)
+                (#pc: 17)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10) (pc[11]: 11)
+                (pc[12]: 12) (pc[13]: 13) (pc[14]: 14) (pc[15]: 15)
+                (pc[16]: 16)
+            } .
+
+    eq init18 = { (k-states: 19) (#errors: 1)
+                (#pc: 18)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10) (pc[11]: 11)
+                (pc[12]: 12) (pc[13]: 13) (pc[14]: 14) (pc[15]: 15)
+                (pc[16]: 16) (pc[17]: 17)
+            } .
+
+    eq init19 = { (k-states: 20) (#errors: 1)
+                (#pc: 19)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10) (pc[11]: 11)
+                (pc[12]: 12) (pc[13]: 13) (pc[14]: 14) (pc[15]: 15)
+                (pc[16]: 16) (pc[17]: 17) (pc[18]: 18)
+            } .
+
+    eq init20 = { (k-states: 21) (#errors: 1)
+                (#pc: 20)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10) (pc[11]: 11)
+                (pc[12]: 12) (pc[13]: 13) (pc[14]: 14) (pc[15]: 15)
+                (pc[16]: 16) (pc[17]: 17) (pc[18]: 18) (pc[19]: 0)
+            } .
+
+    eq init30 = { (k-states: 31) (#errors: 1)
+                (#pc: 30)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10) (pc[11]: 11)
+                (pc[12]: 12) (pc[13]: 13) (pc[14]: 14) (pc[15]: 15)
+                (pc[16]: 16) (pc[17]: 17) (pc[18]: 18) (pc[19]: 19)
+                (pc[20]: 20) (pc[21]: 21) (pc[22]: 22) (pc[23]: 23)
+                (pc[24]: 24) (pc[25]: 25) (pc[26]: 26) (pc[27]: 27)
+                (pc[28]: 28) (pc[29]: 0)
+            } .
+
+    eq init40 = { (k-states: 41) (#errors: 1)
+                (#pc: 40)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10) (pc[11]: 11)
+                (pc[12]: 12) (pc[13]: 13) (pc[14]: 14) (pc[15]: 15)
+                (pc[16]: 16) (pc[17]: 17) (pc[18]: 18) (pc[19]: 19)
+                (pc[20]: 20) (pc[21]: 21) (pc[22]: 22) (pc[23]: 23)
+                (pc[24]: 24) (pc[25]: 25) (pc[26]: 26) (pc[27]: 27)
+                (pc[28]: 28) (pc[29]: 29) (pc[30]: 30) (pc[31]: 31)
+                (pc[32]: 32) (pc[33]: 33) (pc[34]: 34) (pc[35]: 35)
+                (pc[36]: 36) (pc[37]: 37) (pc[38]: 38) (pc[39]: 39)
+            } .
+
+    eq init50 = { (k-states: 51) (#errors: 1)
+                (#pc: 50)
+                (pc[0]: 0) (pc[1]: 1) (pc[2]: 2) (pc[3]: 3)
+                (pc[4]: 4) (pc[5]: 5) (pc[6]: 6) (pc[7]: 7)
+                (pc[8]: 8) (pc[9]: 9) (pc[10]: 10) (pc[11]: 11)
+                (pc[12]: 12) (pc[13]: 13) (pc[14]: 14) (pc[15]: 15)
+                (pc[16]: 16) (pc[17]: 17) (pc[18]: 18) (pc[19]: 19)
+                (pc[20]: 20) (pc[21]: 21) (pc[22]: 22) (pc[23]: 23)
+                (pc[24]: 24) (pc[25]: 25) (pc[26]: 26) (pc[27]: 27)
+                (pc[28]: 28) (pc[29]: 29) (pc[30]: 30) (pc[31]: 31)
+                (pc[32]: 32) (pc[33]: 33) (pc[34]: 34) (pc[35]: 35)
+                (pc[36]: 36) (pc[37]: 37) (pc[38]: 38) (pc[39]: 39)
+                (pc[40]: 40) (pc[41]: 41) (pc[42]: 42) (pc[43]: 43)
+                (pc[44]: 44) (pc[45]: 45) (pc[46]: 46) (pc[47]: 47)
+                (pc[48]: 48) (pc[49]: 0)
+            } .
+endfm
+
+mod K-STATES is
+    pr CONFIG .
+
+    vars L S I J C : Nat .
+    vars N K : Nat .
+    vars OCs : Soup{OComp} .
+
+    op #enabled : Config -> Nat .
+    eq #enabled({(#pc: N) OCs}) = #enabled*({(#pc: N) OCs}, sd(N,1)) .
+
+    op #enabled* : Config Nat -> Nat .
+    eq #enabled*({OCs}, I) = if I == 0 then
+                                isEnableBottom({OCs}, I)
+                            else
+                                isEnableOther({OCs}, I) + #enabled*({OCs}, sd(I,1))
+                            fi .
+
+    op isEnableBottom : Config Nat -> Nat .
+    ceq isEnableBottom({(pc[J]: L) (pc[I]: S) (#pc: N) OCs}, I) = 1 if I == 0 /\ J := sd(N,1) /\ L == S .
+    eq isEnableBottom({OCs}, I) = 0 [owise] .
+
+    op isEnableOther : Config Nat -> Nat .
+    ceq isEnableOther({(pc[J]: L) (pc[I]: S) (#pc: N) OCs}, I) = 1 if I =/= 0 /\ J := ((sd(I,1)) rem N) /\ L =/= S .
+    eq isEnableOther({OCs}, I) = 0 [owise] .
+
+    crl [bottom] : {(pc[J]: L) (pc[I]: S) (#pc: N) (k-states: K) OCs}
+    => {(pc[J]: L) (pc[I]: ((S + 1) rem K )) (#pc: N) (k-states: K) OCs}
+    if I == 0 /\ J := sd(N,1) /\ L == S .
+
+    crl [other-error] : {(pc[J]: L) (pc[I]: S) (#pc: N) (k-states: K) (#errors: C) OCs}
+    => makeOtherError({(pc[J]: L) (pc[I]: S) (#pc: N) (k-states: K) (#errors: C) OCs})
+    if #enabled({(pc[J]: L) (pc[I]: S) (#pc: N) (k-states: K) (#errors: C) OCs}) == 1
+    /\ I == 0 /\ J := sd(N,1) /\ L == S /\ C > 0 .
+
+    crl [other] : {(pc[J]: L) (pc[I]: S) (#pc: N) OCs}
+    => {(pc[J]: L) (pc[I]: L)  (#pc: N) OCs}
+    if I =/= 0 /\ J := ((sd(I,1)) rem N) /\ L =/= S .
+
+    crl [bottom-error] : {(pc[J]: L) (pc[I]: S) (#pc: N) (#errors: C) OCs}
+    => makeBottomError({(pc[J]: L) (pc[I]: S) (#pc: N) (#errors: C) OCs})
+    if #enabled({(pc[J]: L) (pc[I]: S) (#pc: N) (#errors: C) OCs}) == 1
+    /\ I =/= 0 /\ J := ((sd(I,1)) rem N) /\ L =/= S /\ C > 0 .
+
+    op makeBottomError : Config -> Config .
+    ceq makeBottomError({(pc[J]: L) (pc[I]: S) (#pc: N) (k-states: K) (#errors: C) OCs})
+    = {(pc[J]: S) (pc[I]: S) (#pc: N) (k-states: K) (#errors: (sd(C, 1))) OCs}
+    if I == 0 /\ J := sd(N,1) /\ L =/= S .
+
+    op makeOtherError : Config -> Config .
+    ceq makeOtherError({(pc[J]: L) (pc[I]: S) (#pc: N) (k-states: K) (#errors: C) OCs})
+    = {(pc[J]: L) (pc[I]: ((S + 1) rem K )) (#pc: N) (k-states: K) (#errors: (sd(C, 1))) OCs}
+    if I =/= 0 /\ J := ((sd(I,1)) rem N) /\ L == S .
+
+    --- crl [fin] : {(pc[I]: N) OCs} => {(pc[I]: N) OCs} if #enabled({(pc[I]: N) OCs}) == 1 .
+
+    --- rl [flaw] : {(pc[0]: 1) (pc[1]: 1) (pc[2]: 0) (pc[3]: 2) OCs}
+    --- => {(pc[0]: 1) (pc[1]: 1) (pc[2]: 0) (pc[3]: 2) OCs} .
+endm
+
+in model-checker .
+
+mod K-STATES-PREDS is
+  pr K-STATES .
+  inc SATISFACTION .
+  subsort Config < State .
+
+  op legal : -> Prop .
+  op illegal : -> Prop .
+
+  var C : Config .
+  var PROP : Prop .
+  var OCs :  Soup{OComp} .
+
+  eq {OCs} |= illegal = #enabled({OCs}) > 1 .
+  eq {OCs} |= legal = #enabled({OCs}) == 1 .
+  eq {OCs} |= PROP = false [owise] .
+endm
+
+mod K-STATES-CHECK is
+  inc K-STATES-PREDS .
+  inc MODEL-CHECKER .
+  inc LTL-SIMPLIFIER .
+
+  op cstable : -> Formula .
+  eq cstable =  (illegal) |-> [] legal .
+endm
+
+--- search [1] in K-STATES : init =>! {OCs} .
+--- search in K-STATES : init =>+ {OCs} such that #enabled({OCs}) =/= 1 .
+--- search in K-STATES : init =>+ {(pc[0]: 2) (pc[1]: 2) (pc[2]: 2) OCs} .
+reduce in K-STATES-CHECK : modelCheck(init, cstable) .
+reduce in K-STATES-CHECK : modelCheck(ainit, cstable) .
+--- reduce in K-STATES-CHECK : modelCheck(init, [] legal) .

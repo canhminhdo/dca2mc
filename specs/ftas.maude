@@ -1,0 +1,87 @@
+fmod LOC is
+  sort Loc .
+  ops ss ws cs fs : -> Loc [ctor] .
+endfm
+
+fmod PID is
+  sort Pid .
+  ops p1 p2 : -> Pid [ctor] .
+endfm
+
+fmod SOUP {D :: TRIV} is
+  sort Soup{D} .
+  subsort D$Elt < Soup{D} .
+  op empty : -> Soup{D} [ctor] .
+  op _ _ : Soup{D} Soup{D} -> Soup{D} [ctor assoc comm id: empty] .
+endfm
+
+fmod NAT+DEC is
+  pr NAT .
+  op dec : Nat -> Nat .
+  var N : Nat .
+  eq dec(0) = 0 .
+  eq dec(s(N)) = N .
+endfm
+
+fmod OCOMP is
+  pr PID .
+  pr LOC .
+  pr NAT+DEC .
+  sort OComp .
+  op (locked:_) : Bool -> OComp [ctor] .
+  op (pc[_]:_) :  Pid Loc -> OComp [ctor] .
+  op (cnt:_) :  Nat -> OComp [ctor] .
+endfm
+
+view OComp from TRIV to OCOMP is
+  sort Elt to OComp .
+endv
+
+fmod CONFIG is
+  pr SOUP{OComp} .
+  sort Config .
+  op {_} : Soup{OComp} -> Config [ctor] .
+  op init : -> Config .
+  eq init = {(locked: false) (pc[p1]: ss) (pc[p2]: ss) (cnt: 2) } .
+endfm
+
+mod TAS is
+  inc CONFIG .
+  var B : Bool .
+  var I : Pid .
+  var N :  Nat .
+  var OCs : Soup{OComp} .
+  rl [start] : {(pc[I]: ss) OCs} => {(pc[I]: ws) OCs} .
+  rl [wait] : {(locked: false) (pc[I]: ws) OCs} => {(locked: true) (pc[I]: cs) OCs} .
+  rl [exit] : {(locked: B) (pc[I]: cs) (cnt: N) OCs} => {(locked: false) (pc[I]: fs) (cnt: dec(N)) OCs} .
+  rl [fin] : {(cnt: 0) OCs} => {(cnt: 0) OCs} .
+  rl [flaw] : {(cnt: 0) (locked: false) (pc[I]: fs) OCs} => {(cnt: 0) (locked: true) (pc[I]: ws) OCs} .
+endm
+
+in model-checker .
+
+mod TAS-PREDS is
+  pr TAS .
+  inc SATISFACTION .
+  subsort Config < State .
+  ops inWs1 inCs1 : -> Prop .
+  var OCs : Soup{OComp} .
+  var PROP : Prop .
+  eq {(pc[p1]: ws) OCs} |= inWs1 = true .
+  eq {(pc[p1]: cs) OCs} |= inCs1 = true .
+  eq {OCs} |= PROP = false [owise] .
+endm
+
+mod TAS-CHECK is
+  inc TAS-PREDS .
+  inc MODEL-CHECKER .
+  inc LTL-SIMPLIFIER .
+  op lofree : -> Formula .
+  eq lofree = inWs1 |-> inCs1 .
+endm
+
+***(
+search [1] in TAS : init =>! {OCs} .
+search in TAS : init =>* {OCs} such that false .
+red in TAS-CHECK : modelCheck(init,inWs1 |-> inCs1) .
+)***

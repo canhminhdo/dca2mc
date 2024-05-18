@@ -1,0 +1,168 @@
+fmod DATA is
+  pr NAT .
+  sort Data .
+  op d : Nat -> Data [ctor] .
+endfm
+
+fmod PAIR {D1 :: TRIV, D2 :: TRIV } is
+  sort Pair{D1,D2} .
+  op <_,_> : D1$Elt D2$Elt -> Pair{D1,D2} [ctor] .
+endfm
+
+view Data from TRIV to DATA is
+  sort Elt to Data .
+endv
+
+fmod DB-PAIR is
+  pr PAIR{Data,Bool} .
+endfm
+
+fmod ILIST {D :: TRIV} is
+  pr NAT .
+  sort IList{D} .
+  subsort D$Elt < IList{D} .
+  op nil : -> IList{D} [ctor] .
+  op _|_ : IList{D} IList{D} -> IList{D} [ctor assoc id: nil] .
+  op _\in_ : D$Elt IList{D} -> Bool .
+  op size : IList{D} -> Nat .
+  var E : D$Elt .
+  vars L L1 L2 : IList{D} .
+  eq E \in (L1 | E | L2)  = true .
+  eq E \in L = false [owise] .
+  eq size(nil) = 0 .
+  eq size(E | L) = size(L) + 1 .
+endfm
+
+view DB-Pair from TRIV to DB-PAIR is
+  sort Elt to Pair{Data,Bool} .
+endv
+
+fmod SOUP {D :: TRIV} is
+  sort Soup{D} .
+  subsort D$Elt < Soup{D} .
+  op empty : -> Soup{D} [ctor] .
+  op _ _ : Soup{D} Soup{D} -> Soup{D} [ctor assoc comm id: empty] .
+endfm
+
+fmod OCOMP is
+  pr ILIST{DB-Pair} .
+  pr ILIST{Bool} .
+  pr ILIST{Data} .
+  sort OComp .
+  op (sb:_) : Bool -> OComp [ctor] .
+  op (data:_) : Data -> OComp [ctor] .
+  op (rb:_) : Bool -> OComp [ctor] .
+  op (buf:_) : IList{Data} -> OComp [ctor] .
+  op (dc:_) : IList{DB-Pair} -> OComp [ctor] .
+  op (ac:_) : IList{Bool} -> OComp [ctor] .
+  op (sizeddrp:_) : Nat -> OComp [ctor] .
+  op (sizeddup:_) : Nat -> OComp [ctor] .
+  op (sizeadrp:_) : Nat -> OComp [ctor] .
+  op (sizeadup:_) : Nat -> OComp [ctor] .
+  op (rsw:_) : Bool -> OComp [ctor] .
+endfm
+
+view OComp from TRIV to OCOMP is
+  sort Elt to OComp .
+endv
+
+fmod OCOMP-SOUP is
+  pr SOUP{OComp} .
+endfm
+
+fmod CONFIG is
+  pr OCOMP-SOUP .
+  sorts Config .
+  op {_} : Soup{OComp} -> Config [ctor] .
+  op init : -> Config .
+  --- parameters ---
+  ops sizeDrp sizeDup : -> Nat .
+  eq sizeDrp = 3 .
+  eq sizeDup = 3 .
+  ---
+  eq init = {(sb: true) (data: d(0)) (rb: true) (buf: nil) (dc: nil) (ac: nil)
+                   (sizeddrp: sizeDrp) (sizeddup: sizeDup) (sizeadrp: sizeDrp) (sizeadup: sizeDup)
+                   (rsw: true) } .
+endfm
+
+mod ABP is
+  inc CONFIG .
+  vars B B' : Bool .
+  var D : Data .
+  var P : Pair{Data,Bool} .
+  vars N X Y : Nat .
+  var NzN : NzNat .
+  vars Ps Ps1 Ps2 : IList{DB-Pair} .
+  vars Bs Bs1 Bs2 : IList{Bool} .
+  var Ds : IList{Data} .
+  var OCs : Soup{OComp} .
+--- parameters ---
+  op sizeData : -> Nat .
+  op CCap : -> Nat .
+  --- eq sizeData = 50000 .
+  --- eq sizeData = 10000 .
+  --- eq sizeData = 5000 .
+  eq sizeData = 500 .
+  eq CCap = 3 .
+---
+  crl [d-snd] : {(sb: B) (data: d(N)) (dc: Ps) OCs}
+    => {(sb: B) (data: d(N)) (dc: (Ps | < d(N),B >)) OCs}
+  if N < sizeData /\ size(Ps) < CCap .
+  crl [a-rec1] : {(sb: B) (data: d(N)) (ac: (B' | Bs)) (sizeadrp: X) (sizeadup: Y) OCs}
+    => {(sb: (not B)) (data: d(N + 1)) (ac: Bs) (sizeadrp: sizeDrp) (sizeadup: sizeDup) OCs}
+  if B =/= B' .
+  crl [a-rec2] : {(sb: B) (data: D) (ac: (B' | Bs)) OCs}
+    => {(sb: B) (data: D) (ac: Bs) OCs}
+  if B = B' .
+  crl [a-snd] : {(rb: B) (ac: Bs) (rsw: false) OCs}
+    => {(rb: B) (ac: (Bs | B)) (rsw: true) OCs}
+  if size(Bs) < CCap .
+  crl [d-rec1] : {(rb: B) (buf: Ds) (dc: (< D,B' > | Ps)) (sizeddrp: X) (sizeddup: Y) (rsw: true) OCs}
+    => {(rb: (not B)) (buf: (Ds | D)) (dc: Ps) (sizeddrp: sizeDrp) (sizeddup: sizeDup) (rsw: false) OCs}
+  if B = B' .
+  crl [d-rec2] : {(rb: B) (buf: Ds) (dc: (< D,B' > | Ps)) (rsw: true) OCs}
+    => {(rb: B) (buf: Ds) (dc: Ps) (rsw: false) OCs}
+  if B =/= B' .
+  rl [d-drp] : {(dc: (Ps1 | P | Ps2)) (sizeddrp: NzN) OCs}
+    => {(dc: (Ps1 | Ps2)) (sizeddrp: sd(NzN,1)) OCs} .
+  crl [d-dup] : {(dc: (Ps1 | P | Ps2)) (sizeddup: NzN) OCs}
+    => {(dc: (Ps1 | P | P | Ps2)) (sizeddup: sd(NzN,1)) OCs}
+  if size(Ps1 | P | Ps2) < CCap .
+  rl [a-drp] : {(ac: (Bs1 | B | Bs2)) (sizeadrp: NzN) OCs}
+    => {(ac: (Bs1 | Bs2)) (sizeadrp: sd(NzN,1)) OCs} .
+  crl [a-dup] : {(ac: (Bs1 | B | Bs2)) (sizeadup: NzN) OCs}
+    => {(ac: (Bs1 | B | B | Bs2)) (sizeadup: sd(NzN,1)) OCs}
+  if size(Bs1 | B | Bs2) < CCap .
+endm
+
+in model-checker .
+
+mod ABP-PREDS is
+  pr ABP .
+  inc SATISFACTION .
+  subsort Config < State .
+  ops sndX recX : -> Prop .
+  var OCs : Soup{OComp} .
+  vars Ds1 Ds2 : IList{Data} .
+  var PROP : Prop .
+  eq {(data: d(100)) OCs} |= sndX = true .
+  eq {(buf: (Ds1 | d(100) | Ds2)) OCs} |= recX = true .
+  eq {OCs} |= PROP = false [owise] .
+endm
+
+mod ABP-CHECK is
+  inc ABP-PREDS .
+  inc MODEL-CHECKER .
+  inc LTL-SIMPLIFIER .
+  op progCommX : -> Formula .
+  eq progCommX = sndX |-> recX .
+endm
+
+***(
+search [1] in ABP : init =>* {OCs} such that false .
+search [,200] in ABP : init =>* {OCs} such that false .
+search [1,100000] in ABP : init =>* {OCs} such that false .
+search [,100000] in ABP : init =>* {OCs} such that false .
+search in ABP : init =>* {OCs} such that false .
+red in ABP-CHECK : modelCheck(init,progCommX) .
+)***

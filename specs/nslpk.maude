@@ -1,0 +1,299 @@
+***
+*** The difference between NSPK and NSLPK is the second message.
+*** NSPK   : p <-- q : {n_p,n_q}_{pubk(p)}
+*** NSLPK : p <-- q : {n_p,n_q,q}_{pubk(p)}
+*** The sender ID q is included in the message (encrypted) in NSLPK.
+***
+*** p --> q : {n_p,p}_{pubk(q)}
+*** p <-- q : {n_p,n_q,q}_{pubk(p)}
+*** p --> q : {n_q}_{pubk(q)}
+***
+*** p, q : principals (or principal IDs)
+*** n_x : a nonce made by a principal x
+*** pubk(x) : a public key owned by a pricipal x
+*** {...}_{k} : a cipher encrypted with a key k,
+*** which can be only decrypted with the counterpart of k,
+*** where if k is pubk(x), the counterpart is the private key
+*** owned by x.
+***
+
+fmod SOUP {X :: TRIV} is
+  sort Soup{X} .
+  subsort X$Elt < Soup{X} .
+  op emp : -> Soup{X} [ctor] .
+  op _ _ : Soup{X} Soup{X} -> Soup{X} [ctor assoc comm id: emp] .
+  op _\in_ : X$Elt Soup{X} -> Bool .
+  var E : X$Elt .
+  var S : Soup{X} .
+  eq E \in E S = true .
+  eq E \in S = false [owise] .
+endfm
+
+fmod RAND is
+  sort Rand .
+  ops r1 r2 : -> Rand [ctor] .
+endfm
+
+view Rand from TRIV to RAND is
+  sort Elt to Rand .
+endv
+
+fmod RAND-SOUP is
+  pr SOUP{Rand} .
+endfm
+
+fmod PRIN is
+  sort Prin .
+  ops p q intrdr : -> Prin [ctor] .
+endfm
+
+view Prin from TRIV to PRIN is
+  sort Elt to Prin .
+endv
+
+fmod PRIN-SOUP is
+  pr SOUP{Prin} .
+endfm
+
+fmod NONCE is
+  pr RAND .
+  pr PRIN .
+  sort Nonce .
+  op n : Prin Prin Rand -> Nonce [ctor] .
+  op gen : Nonce -> Prin .
+  op forWhom : Nonce -> Prin .
+  op rand : Nonce -> Rand .
+  vars P1 P2 : Prin .
+  var R : Rand .
+  eq gen(n(P1,P2,R)) = P1 .
+  eq forWhom(n(P1,P2,R)) = P2 .
+  eq rand(n(P1,P2,R)) = R .
+endfm
+
+view Nonce from TRIV to NONCE is
+  sort Elt to Nonce .
+endv
+
+fmod NONCE-SOUP is
+  pr SOUP{Nonce} .
+endfm
+
+fmod CIPHER1 is
+  pr NONCE .
+  sort Cipher1 .
+  op c1 : Prin Nonce Prin -> Cipher1 [ctor] .
+  op non : Cipher1 -> Nonce .
+  op gen : Cipher1 -> Prin .
+  vars P Q : Prin .
+  var N : Nonce .
+  eq non(c1(Q,N,P)) = N .
+  eq gen(c1(Q,N,P)) = P .
+endfm
+
+fmod CIPHER2 is
+  pr NONCE .
+  sort Cipher2 .
+  op c2 : Prin Nonce Nonce Prin -> Cipher2 [ctor] .
+  op non1 : Cipher2 -> Nonce .
+  op non2 : Cipher2 -> Nonce .
+  op gen : Cipher2 -> Prin .
+  vars P Q : Prin .
+  vars N1 N2 : Nonce .
+  eq non1(c2(P,N1,N2,Q)) = N1 .
+  eq non2(c2(P,N1,N2,Q)) = N2 .
+  eq gen(c2(P,N1,N2,Q)) = Q .
+endfm
+
+fmod CIPHER3 is
+  pr NONCE .
+  sort Cipher3 .
+  op c3 : Prin Nonce -> Cipher3 [ctor] .
+endfm
+
+fmod MESSAGE1 is
+  pr CIPHER1 .
+  sort Msg1 .
+  op m1 : Prin Prin Prin Cipher1 -> Msg1 [ctor] .
+endfm
+
+fmod MESSAGE2 is
+  pr CIPHER2 .
+  sort Msg2 .
+  op m2 : Prin Prin Prin Cipher2 -> Msg2 [ctor] .
+  op src : Msg2 -> Prin .
+  op ciph2 : Msg2 -> Cipher2 .
+  vars C S D : Prin .
+  var CIPH2 : Cipher2 .
+  eq src(m2(C,S,D,CIPH2)) = S .
+  eq ciph2(m2(C,S,D,CIPH2)) = CIPH2 .
+endfm
+
+fmod MESSAGE3 is
+  pr CIPHER3 .
+  sort Msg3 .
+  op m3 : Prin Prin Prin Cipher3 -> Msg3 [ctor] .
+endfm
+
+fmod MESSAGE is
+  pr MESSAGE1 .
+  pr MESSAGE2 .
+  pr MESSAGE3 .
+  sort Msg .
+  subsorts Msg1 Msg2 Msg3 < Msg .
+endfm
+
+view Msg from TRIV to MESSAGE is
+  sort Elt to Msg .
+endv
+
+fmod NETWORK is
+  pr SOUP{Msg} .
+  op _\in_ : Cipher1 Soup{Msg} -> Bool .
+  op _\in_ : Cipher2 Soup{Msg} -> Bool .
+  op _\in_ : Cipher3 Soup{Msg} -> Bool .
+  var N : Nonce .
+  vars C S D : Prin .
+  var CIPH1 : Cipher1 .
+  var CIPH2 : Cipher2 .
+  var CIPH3 : Cipher3 .
+  var NW : Soup{Msg} .
+  ***
+  eq CIPH1 \in m1(C,S,D,CIPH1) NW = true .
+  eq CIPH1 \in NW = false [owise] .
+  ***
+  eq CIPH2 \in m2(C,S,D,CIPH2) NW = true .
+  eq CIPH2 \in NW = false [owise] .
+  ***
+  eq CIPH3 \in m3(C,S,D,CIPH3) NW = true .
+  eq CIPH3 \in NW = false [owise] .
+endfm
+
+fmod OCOM is
+  pr NETWORK .
+  pr RAND-SOUP .
+  pr NONCE-SOUP .
+  pr PRIN-SOUP .
+  sort OCom .
+  op nw:_ : Soup{Msg} -> OCom [ctor] .
+  op rand:_ : Soup{Rand} -> OCom [ctor] .
+  op nonces:_ : Soup{Nonce} -> OCom [ctor] .
+  op prins:_ : Soup{Prin} -> OCom [ctor] .
+endfm
+
+view OCom from TRIV to OCOM is
+  sort Elt to OCom .
+endv
+
+fmod OCOM-SOUP is
+  pr SOUP{OCom} .
+endfm
+
+fmod CONFIG is
+  pr OCOM-SOUP .
+  sort Config .
+  op {_} : Soup{OCom} -> Config [ctor] .
+  op init : -> Config .
+  eq init = {(nw: emp) (rand: (r1 r2)) (nonces: emp) (prins: (p q intrdr))} .
+endfm
+
+mod NSLPK is
+  inc CONFIG .
+  var NW : Soup{Msg} .
+  var R : Rand .
+  var Rs : Soup{Rand} .
+  vars N N' : Nonce .
+  var Ns : Soup{Nonce} .
+  vars P Q P' Q' P'' Q'' : Prin .
+  var Ps : Soup{Prin} .
+  var C1 : Cipher1 .
+  var C2 : Cipher2 .
+  var C3 : Cipher3 .
+  var OCs : Soup{OCom} .
+  ***
+  rl [challenge] :
+    {(nw: NW) (nonces: Ns) (rand: (R Rs)) (prins: (P Q Ps))}
+    =>
+    {(nw: (m1(P,P,Q,c1(Q,n(P,Q,R),P)) NW))
+      (nonces: (if Q == intrdr then (n(P,Q,R) Ns) else Ns fi))
+      (rand: Rs) (prins: (P Q Ps))} .
+
+  rl [Response] :
+    {(nw: (m1(P',P,Q,c1(Q,N,P)) NW))
+      (rand: (R Rs)) (nonces: Ns) OCs}
+    =>
+    {(nw: (m2(Q,Q,P,c2(P,N,n(Q,P,R),Q))
+                m1(P',P,Q,c1(Q,N,P)) NW))
+      (rand: Rs)
+      (nonces: (if P == intrdr then (N n(Q,P,R) Ns) else Ns fi))
+      OCs} .
+
+  rl [Confirmation] :
+    {(nw: (m2(Q',Q,P,c2(P,N,N',Q))
+                m1(P,P,Q,c1(Q,N,P)) NW))
+      (nonces: Ns) OCs}
+    =>
+    {(nw: (m3(P,P,Q,c3(Q,N'))
+                m2(Q',Q,P,c2(P,N,N',Q))
+                m1(P,P,Q,c1(Q,N,P)) NW))
+      (nonces: (if Q == intrdr then (N' Ns) else Ns fi))
+      OCs} .
+
+  rl [fake11] :
+    {(nw: NW) (nonces: (N Ns)) (prins: (P Q Ps)) OCs}
+    =>
+    {(nw: (m1(intrdr,P,Q,c1(Q,N,P)) NW))
+      (nonces: (N Ns)) (prins: (P Q Ps)) OCs} .
+
+  rl [fake12] :
+    {(nw: (m1(P',P'',Q'',C1) NW)) (prins: (P Q Ps)) OCs}
+    =>
+    {(nw: (m1(intrdr,P,Q,C1)
+                m1(P',P'',Q'',C1) NW))
+      (prins: (P Q Ps)) OCs} .
+
+  rl [fake21] :
+    {(nw: NW) (nonces: (N N' Ns)) (prins: (P Q Ps)) OCs}
+    =>
+    {(nw: (m2(intrdr,Q,P,c2(P,N,N',Q)) NW))
+      (nonces: (N N' Ns)) (prins: (P Q Ps)) OCs} .
+
+  rl [fake22] :
+    {(nw: (m2(Q',Q'',P'',C2) NW)) (prins: (P Q Ps)) OCs}
+    =>
+    {(nw: (m2(intrdr,Q,P,C2)
+                m2(Q',Q'',P'',C2) NW))
+      (prins: (P Q Ps)) OCs} .
+
+  rl [fake31] :
+    {(nw: NW) (nonces: (N Ns)) (prins: (P Q Ps)) OCs}
+    =>
+    {(nw: (m3(intrdr,P,Q,c3(Q,N)) NW))
+      (nonces: (N Ns)) (prins: (P Q Ps)) OCs} .
+
+  rl [fake32] :
+    {(nw: (m3(P',P'',Q'',C3) NW)) (prins: (P Q Ps)) OCs}
+    =>
+    {(nw: (m3(intrdr,P,Q,C3)
+                m3(P',P'',Q'',C3) NW))
+      (prins: (P Q Ps)) OCs} .
+
+endm
+
+***(
+*** Nonce secrecy property
+search [1] in NSLPK : init =>* {(nonces: (n(P,Q,R) Ns)) OCs} such that P =/= intrdr /\ Q =/= intrdr .
+show path 181915 .
+
+*** Correspondency property for initiator P
+search [1] in NSLPK : init =>*
+{(nw: (m1(P,P,Q,c1(Q,N,P)) m2(Q',Q,P,c2(P,N,N',Q)) m3(P,P,Q,c3(Q,N')) NW)) OCs}
+such that not (m2(Q,Q,P,c2(P,N,N',Q)) \in (m2(Q',Q,P,c2(P,N,N',Q)) NW)) /\ P =/= intrdr /\ Q =/= intrdr .
+
+*** Correspondency property for responder Q
+search [1] in NSLPK : init =>*
+{(nw: (m1(P',P,Q,c1(Q,N,P)) m2(Q,Q,P,c2(P,N,N',Q)) m3(P'',P,Q,c3(Q,N')) NW)) OCs}
+such that not (m1(P,P,Q,c1(Q,N,P)) \in (m1(P',P,Q,c1(Q,N,P)) NW) and
+                         m3(P,P,Q,c3(Q,N')) \in (m3(P'',P,Q,c3(Q,N')) NW) )
+                 /\ P =/= intrdr /\ Q =/= intrdr .
+
+)***

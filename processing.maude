@@ -1,0 +1,136 @@
+mod DCA2MC-PROCESSING is
+    pr DCA2MC-PARSING .
+    pr CHECKER .
+    pr META-LEVEL .
+    pr MOVE-DOWN .
+    pr MOVE-UP .
+    pr IO .
+
+    inc (2TUPLE * (op `(_`,_`) to <<_;_>>,
+                 op p1_ to getDatabase,
+                 op p2_ to getQidList)) {Database, QidList} .
+
+    vars M : Module .
+    vars DB DB' : Database .
+    vars QI QI1 QI2 : Qid .
+    vars RP RP1 RP2 : ResultPair .
+    vars RP? RP1? RP2? : ResultPair? .
+    vars T T1 T2 T3 T4 T5 T6 T' T1' T2' : Term .
+    vars TS : TermSet .
+    vars TB : Tableau .
+    vars NL : NatList .
+    vars SFS SFS' : SFSet .
+    vars RT : ResultType .
+    vars B : Bool .
+
+    *** initialize command
+    op procInitializeCommand : Term Database -> Tuple{Database,QidList} .
+    ceq procInitializeCommand('initialize`[_`,_`,_`][T, T1, T2], DB)
+    = << initializeDB(QI, T3, T4, T5, T6, TS)  ; 
+            ('\b 'Initialization: '\s '\o 'success '\s '\n
+                '\o '\s 'module: QI '\n
+                '\o '\s 'initState: T3 '\n
+                '\o '\s 'formula: T4 '\n
+                '\o '\s 'stateSort: getType(T3) '\n
+                '\o '\s 'redInitState: metaPrettyPrint(M, T5, none) '\n
+                '\o '\s 'redFormula: metaPrettyPrint(M, T6, none) '\n
+                ) >>
+    if QI := parseHeader(T)
+    /\ M := upModule(QI, true)
+    /\ T1' := solveBubbleAndToken(T1) 
+    /\ T2' := solveBubbleAndToken(T2) 
+    /\ QI1 := downQidList(T1')
+    /\ QI2 := downQidList(T2')
+    /\ T3 := buildTerm(QI1, extractType(M, QI1)) --- init term
+    /\ T4 := buildTerm(QI2, extractType(M, QI2)) --- formula term
+    /\ RP1 := metaReduce(M, T3) 
+    /\ RP2 := metaReduce(M, T4) 
+    /\ T5 := getTerm(RP1) --- reduced init term
+    /\ T6 := getTerm(RP2) --- reduced formula term
+    /\ TS := extractAtoms(T6) --- atoms
+    .
+    
+    eq procInitializeCommand('initialize`[_`,_`,_`][T, T1, T2], DB) 
+    = << DB ; ('\r 'Error: '\o 'Incorrect 'input. '\n) >> [owise] .
+
+    --- initialize database
+    op initializeDB : Qid Term Term Term Term TermSet -> Database .
+    ceq initializeDB(QI, T1, T2, T3, T4, TS) =
+    {
+        (module: QI),
+        (initState: T1),
+        (formula: T2),
+        (redInitState: T3),
+        (redFormula: T4),
+        (atoms: TS),
+        (depthList: nil),
+        (currentDepth: 0),
+        (tableau: buildTableau(T4)),
+        (sfSet: ({T3 : getInitNode(TB)})),
+        (result: unknown)
+    } 
+    if TB := buildTableau(T4) .
+
+    *** layerCheck command
+    op procLayerCheckCommand : Term Database -> Tuple{Database,QidList} .
+    ceq procLayerCheckCommand('layerCheck_[T], DB) = 
+        << DB' ; (
+            procAnalyzeCommand('analyze.@Command@, DB') '\n
+            '\b 'LayerCheck: '\s '\o 'success '\n
+        ) >>
+    if not isEmptyDB(DB)
+    /\ T' := getTerm(
+                metaParse(
+                    upModule('NAT-LIST, false),
+                    downQidList(solveBubbleAndToken(T)),
+                    'NatList
+                )
+            )
+    /\ NL := downTerm(T', nil) 
+    /\ M := upModule(getModule(DB), false)
+    /\ SFS := getSfSet(DB)
+    /\ TB := getTableau(DB)
+    /\ < RT | SFS' > := collect(M, TB, getVarTerm(getStateSort(DB)), SFS, NL)
+    /\ DB' := evalDB(
+            DB,
+            ((currentDepth: (getCurrentDepth(DB) + sum(NL))),
+            (depthList: (append(getDepthList(DB), NL))),
+            (sfSet: SFS'),
+            (result: RT))
+        )
+    .
+
+    eq procLayerCheckCommand('layerCheck_[T], DB)
+    = << DB ; ('\r 'Error: '\o 'cannot 'find 'initialization. '\n) >> [owise] .
+
+    *** analyze command
+    op procAnalyzeCommand : Term Database -> QidList .
+    ceq procAnalyzeCommand('analyze.@Command@, DB)
+        = ('\b 'Analyzer: '\n
+            '\t '\o 'currentDepth: qid(getCurrentDepth(DB)) '\n
+            '\t '\o '#sfSet: qid(| getSfSet(DB) |) '\n
+            '\t '\o 'result: qid(getResult(DB)) '\n
+        )
+        if not isEmptyDB(DB) .
+
+    eq procAnalyzeCommand('analyze.@Command@, DB) =
+        ('\r 'Error: '\o 'cannot 'find 'initialization. '\n) [owise] .
+
+    *** lastCheck command
+    op procLastCheckCommand : Term Database -> Tuple{Database,QidList} .
+    ceq procLastCheckCommand('lastCheck.@Command@, DB)
+    = << DB ; ( if B then 
+                    ('\b 'LastCheck: '\s '\o 'success '\n)
+                else 
+                    ('\r 'LastCheck: '\s '\o 'failure '\n)
+                fi) >> 
+    if not isEmptyDB(DB) 
+    /\ M := upModule(getModule(DB), false)
+    /\ SFS := getSfSet(DB)
+    /\ B := lastLayerCheck(M, SFS) .
+
+    eq procLastCheckCommand('lastCheck.@Command@, DB) =
+    << DB ; ('\r 'Error: '\o 'cannot 'find 'initialization. '\n) >> [owise] .
+endm
+
+eof

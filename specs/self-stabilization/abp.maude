@@ -1,0 +1,205 @@
+fmod DATA is
+  pr NAT .
+  sort Data .
+  op d : Nat -> Data [ctor] .
+endfm
+
+fmod SEQNUM is
+  pr NAT .
+  sort SeqNum .
+  var N : Nat .
+  op seq : Nat -> SeqNum [ctor] .
+  op _++ : SeqNum -> SeqNum .
+  eq seq(N) ++ = seq(N + 1) .
+endfm
+
+fmod ILIST {D :: TRIV} is
+  pr NAT .
+  sort IList{D} .
+  subsort D$Elt < IList{D} .
+  op nil : -> IList{D} [ctor] .
+  op _|_ : IList{D} IList{D} -> IList{D} [ctor assoc id: nil] .
+  op _\in_ : D$Elt IList{D} -> Bool .
+  op size : IList{D} -> Nat .
+  var E : D$Elt .
+  vars L L1 L2 : IList{D} .
+  eq E \in (L1 | E | L2)  = true .
+  eq E \in L = false [owise] .
+  eq size(nil) = 0 .
+  eq size(E | L) = size(L) + 1 .
+
+  op top : IList{D} -> D$Elt .
+  eq top(E | L) = E .
+  op last : IList{D} -> D$Elt .
+  eq last(L | E) = E .
+endfm
+
+fmod PAIR {D1 :: TRIV, D2 :: TRIV } is
+  sort Pair{D1,D2} .
+  op <_,_> : D1$Elt D2$Elt -> Pair{D1,D2} [ctor] .
+endfm
+
+view Data from TRIV to DATA is
+  sort Elt to Data .
+endv
+
+view SeqNum from TRIV to SEQNUM is
+  sort Elt to SeqNum .
+endv
+
+fmod DB-PAIR is
+  pr PAIR{Data,SeqNum} .
+endfm
+
+view DB-Pair from TRIV to DB-PAIR is
+  sort Elt to Pair{Data,SeqNum} .
+endv
+
+fmod SOUP {D :: TRIV} is
+  sort Soup{D} .
+  subsort D$Elt < Soup{D} .
+  op empty : -> Soup{D} [ctor] .
+  op __ : Soup{D} Soup{D} -> Soup{D} [ctor assoc comm id: empty] .
+endfm
+
+fmod OCOMP is
+  pr ILIST{DB-Pair} .
+  pr ILIST{SeqNum} .
+  pr ILIST{Data} .
+  sort OComp .
+  op (sb:_) : SeqNum -> OComp [ctor] .
+  op (data:_) : Data -> OComp [ctor] .
+  op (rb:_) : SeqNum -> OComp [ctor] .
+  op (buf:_) : IList{Data} -> OComp [ctor] .
+  op (dc:_) : IList{DB-Pair} -> OComp [ctor] .
+  op (ac:_) : IList{SeqNum} -> OComp [ctor] .
+  op (#ddrp:_) : Nat -> OComp [ctor] .
+  op (#ddup:_) : Nat -> OComp [ctor] .
+  op (#adrp:_) : Nat -> OComp [ctor] .
+  op (#adup:_) : Nat -> OComp [ctor] .
+  op (rsw:_) : Bool -> OComp [ctor] .
+  op (#crash:_) : Nat -> OComp [ctor] .
+endfm
+
+view OComp from TRIV to OCOMP is
+  sort Elt to OComp .
+endv
+
+fmod OCOMP-SOUP is
+  pr SOUP{OComp} .
+endfm
+
+fmod CONFIG is
+  pr OCOMP-SOUP .
+  sorts Config .
+  op {_} : Soup{OComp} -> Config [ctor] .
+  ops #drp #dup : -> Nat .
+  eq #drp = 3 .
+  eq #dup = 3 .
+  op init : -> Config .
+  eq init = { (sb: seq(0)) (data: d(0)) (rb: seq(1)) (buf: nil) (dc: nil) (ac: nil)
+              (#ddrp: #drp) (#ddup: #dup) (#adrp: #drp) (#adup: #dup)
+              (rsw: true)
+              (#crash: 1)
+            } .
+endfm
+
+mod ABP is
+  inc CONFIG .
+  vars B B' : SeqNum .
+  var D : Data .
+  var P : Pair{Data,SeqNum} .
+  vars N X Y : Nat .
+  vars NzN : NzNat .
+  vars Ps Ps1 Ps2 : IList{DB-Pair} .
+  vars Bs Bs' Bs1 Bs2 : IList{SeqNum} .
+  var Ds : IList{Data} .
+  var OCs : Soup{OComp} .
+
+  --- start rank of state
+  op rank : Config -> Nat .
+  eq rank({(sb: B) (dc: Ps) (rb: B') (ac: Bs) OCs}) = rank*(B | seqDc(Ps) | B' | Bs)
+  --- [print "B = " B " B' = " B' " Bs = " Bs]
+  .
+
+  op rank* : IList{SeqNum} -> Nat .
+  eq rank*(nil) = 0 .
+  eq rank*(B | Bs) = if top(B | Bs) == last(B | Bs) then rank**(Bs, B) + 1 else rank**(Bs, B) fi
+  --- [print B " | " Bs]
+  .
+
+  op rank** : IList{SeqNum} IList{SeqNum} -> Nat .
+  eq rank**(B | Bs, B' | Bs') = if B == B' then
+                                  rank**(Bs, B' | Bs')
+                                else
+                                  rank**(Bs, B | B' | Bs')
+                                fi .
+
+  eq rank**(nil, Bs) =  size(Bs) .
+
+  op seqDc : IList{DB-Pair} -> IList{SeqNum} .
+  eq seqDc(< D, B > | Ps) = B | seqDc(Ps) .
+  eq seqDc(nil) = nil .
+  --- end rank
+
+  ops #data CCap : -> Nat .
+  eq #data = 60 .
+  eq CCap = 3 .
+
+  --- sender
+  --- send data
+  crl [d-snd] : {(sb: B) (data: d(N)) (dc: Ps) OCs} => {(sb: B) (data: d(N)) (dc: (< d(N),B > | Ps)) OCs}
+  if N < #data /\ size(Ps) < CCap .
+  --- receive ack
+  crl [a-rec1] : {(sb: B) (data: d(N)) (ac: (Bs | B')) (#adrp: X) (#adup: Y) OCs}
+  => {(sb: (B ++)) (data: d(N + 1)) (ac: Bs) (#adrp: #drp) (#adup: #dup) OCs} if B == B' .
+  --- receive ack & drop
+  crl [a-rec2] : {(sb: B) (data: D) (ac: (Bs | B')) OCs} => {(sb: B) (data: D) (ac: Bs) OCs} if B =/= B' .
+  --- receiver
+  --- send ack
+  crl [a-snd] : {(rb: B) (ac: Bs) (rsw: false) OCs} => {(rb: B) (ac: (B | Bs)) (rsw: true) OCs} if size(Bs) < CCap .
+  --- receive data
+  crl [d-rec1] : {(rb: B) (buf: Ds) (dc: (Ps | < D,B' >)) (#ddrp: X) (#ddup: Y) (rsw: true) OCs}
+  => {(rb: B') (buf: (Ds | D)) (dc: Ps) (#ddrp: #drp) (#ddup: #dup) (rsw: false) OCs} if B =/= B' .
+  --- receive data and drop
+  crl [d-rec2] : {(rb: B) (buf: Ds) (dc: (Ps | < D,B' >)) (rsw: true) OCs} => {(rb: B) (buf: Ds) (dc: Ps) (rsw: false) OCs} if B == B' .
+  --- drp & dup
+  rl [d-drp] : {(dc: (Ps1 | P | Ps2)) (#ddrp: NzN) OCs} => {(dc: (Ps1 | Ps2)) (#ddrp: sd(NzN,1)) OCs} .
+  crl [d-dup] : {(dc: (Ps1 | P | Ps2)) (#ddup: NzN) OCs} => {(dc: (Ps1 | P | P | Ps2)) (#ddup: sd(NzN,1)) OCs} if size((Ps1 | P | Ps2)) < CCap .
+  rl [a-drp] : {(ac: (Bs1 | B | Bs2)) (#adrp: NzN) OCs} => {(ac: (Bs1 | Bs2)) (#adrp: sd(NzN,1)) OCs} .
+  crl [a-dup] : {(ac: (Bs1 | B | Bs2)) (#adup: NzN) OCs} => {(ac: (Bs1 | B | B | Bs2)) (#adup: sd(NzN,1)) OCs} if size((Bs1 | B | Bs2)) < CCap .
+  --- sender or receiver crash
+  crl [s-crash] : {(sb: B) (data: d(N)) (#crash: NzN) OCs} => {(sb: seq(2)) (data: d(N)) (#crash: sd(NzN,1)) OCs} if N == 0 .
+  crl [r-crash] : {(rb: B) (data: d(N)) (#crash: NzN) OCs} => {(rb: seq(2)) (data: d(N)) (#crash: sd(NzN,1)) OCs} if N == 0 .
+  --- infinite loop
+  crl [stutter] : {(data: d(N)) OCs} => {(data: d(N)) OCs} if N == #data .
+endm
+
+in model-checker .
+
+mod ABP-PREDS is
+  pr ABP .
+  inc SATISFACTION .
+  subsort Config < State .
+
+  op legal : -> Prop .
+  op crash : -> Prop .
+  var PROP : Prop .
+  var OCs :  Soup{OComp} .
+
+  eq {OCs} |= crash = (rank({OCs}) > 2) .
+  eq {OCs} |= legal = (rank({OCs}) == 2) .
+  eq {OCs} |= PROP = false [owise] .
+endm
+
+mod ABP-CHECK is
+  inc ABP-PREDS .
+  inc MODEL-CHECKER .
+  inc LTL-SIMPLIFIER .
+
+  op cstable : -> Formula .
+  eq cstable = crash |-> [] legal .
+endm
+
+--- reduce in ABP-CHECK : modelCheck(init, [] legal) .
+--- reduce in ABP-CHECK : modelCheck(init, crash |-> [] legal) .

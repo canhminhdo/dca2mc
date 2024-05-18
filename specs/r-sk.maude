@@ -1,0 +1,315 @@
+fmod QUEUE is
+  pr NAT .
+  sort Queue .
+  op empty : -> Queue .
+  op _|_ : Nat Queue -> Queue .
+  op top : Queue -> Nat .
+  op put : Queue Nat -> Queue .
+  op get : Queue -> Queue .
+  op _\in_ : Nat Queue -> Bool .
+  op empty? : Queue -> Bool .
+  vars I J : Nat .
+  var Q : Queue .
+  eq top(I | Q) = I .
+  eq put(empty,I) = I | empty .
+  eq put(J | Q,I) = J | put(Q,I) .
+  eq get(empty) = empty .
+  eq get(I | Q) = Q .
+  eq I \in empty = false .
+  eq I \in (I | Q) = true .
+  eq I \in (J | Q) = I \in Q [owise] .
+  eq empty?(empty) = true .
+  eq empty?(I | Q) = false .
+endfm
+
+fmod ARRAY is
+  pr NAT .
+  sort AElm Array .
+  subsort AElm < Array .
+  op ia : -> Array .
+  op _:_ : Nat Nat -> AElm .
+  op _,_ : Array Array -> Array [assoc comm id: ia] .
+  op _[_] : Array Nat -> Nat .
+  op _[_] :=_ : Array Nat Nat -> Array .
+  var A : Array .
+  vars I J : Nat .
+  vars X Y : Nat .
+  eq ((I : X) , A)[I] = X .
+  eq A[I] = 0 [owise] .
+  eq (((I : X) , A)[I] := Y) = (I : Y) , A .
+  eq (A[I] := Y) = (I : Y) , A [owise] .
+endfm
+
+fmod IREQUEST is
+  pr NAT .
+  sort IRequest .
+  op req : Nat Nat -> IRequest .
+endfm
+
+fmod PRIVILEGE is
+  pr QUEUE .
+  pr ARRAY .
+  sort Privilege .
+  op priv : Queue Array -> Privilege .
+endfm
+
+fmod MESSAGE is
+  pr IREQUEST .
+  pr PRIVILEGE .
+  sort Message .
+  op msg : Nat IRequest -> Message .
+  op msg : Nat Privilege -> Message .
+endfm
+
+fmod NETWORK is
+  pr MESSAGE .
+  sort Network .
+  subsort Message < Network .
+  op void : -> Network .
+  op __ : Network Network -> Network [assoc comm id: void] .
+  --- eq M:Message M:Message = M:Message .
+endfm
+
+fmod LABEL is
+  sort Label .
+  ops rs l1 l2 l3 l4 ws cs l6 l7 l8 l9 l10 fs : -> Label .
+endfm
+
+mod SKDMXA is
+  pr NETWORK .
+  pr LABEL .
+  sorts OCom Sys Config .
+  subsort OCom < Sys .
+ --- System Configuration
+  op none :             -> Sys .
+  op __   : Sys Sys -> Sys [ctor assoc comm id: none] .
+  op {_} : Sys -> Config [ctor] .
+  --- variables
+  --- op numOfReq[_]:_   : Nat Nat   -> OCom . --- for model-checking
+  op pc[_]:_         : Nat Label -> OCom [ctor] .
+  op requesting[_]:_ : Nat Bool  -> OCom [ctor] .
+  op havePriv[_]:_   : Nat Bool  -> OCom [ctor] .
+  op rn[_]:_         : Nat Array -> OCom [ctor] .
+  op ln[_]:_         : Nat Array -> OCom [ctor] .
+  op queue[_]:_      : Nat Queue -> OCom [ctor] .
+  op idx[_]:_        : Nat Nat   -> OCom [ctor] .
+  op cnt[_]:_        : Nat Nat   -> OCom [ctor] .
+  op nw:_            : Network   -> OCom [ctor] .
+  op cnt:_           : Nat -> OCom [ctor] .
+  --- parameters
+  op n : -> NzNat . --- the number of nodes
+  --- op m : -> Nat . --- the number of requests each node makes
+  --- Maude variables
+  vars S OCs : Sys .
+  vars I J : Nat . --- denoting nodes
+  vars X Max : Nat .
+  vars F F' C : Bool .
+  vars RN LN LN' : Array .
+  vars Q Q' : Queue .
+  var NW : Network .
+  var L : Label .
+  --- try
+  rl [try] :
+    { (pc[I]: rs) OCs }
+    => { (pc[I]: l1) OCs } .
+  --- setReq
+  rl [setReq] :
+    { (pc[I]: l1)
+    (requesting[I]: F) OCs }
+    => { (pc[I]: l2)
+       (requesting[I]: true) OCs } .
+  --- checkPriv
+  rl [checkPriv1] :
+    { (pc[I]: l2)
+    (havePriv[I]: true) OCs }
+    => { (pc[I]: cs)
+       (havePriv[I]: true) OCs } .
+  rl [checkPriv2] :
+    { (pc[I]: l2)
+    (havePriv[I]: false) OCs }
+    => { (pc[I]: l3)
+       (havePriv[I]: false) OCs } .
+  --- incRecNo
+  rl [incRecNo] :
+    { (pc[I]: l3)
+    (rn[I]: RN)
+    (idx[I]: X) OCs }
+    => { (pc[I]: l4)
+       (rn[I]: RN[I] := (RN[I]) + 1)
+       (idx[I]: 1) OCs } .
+  --- sendReq
+  rl [sendReq1] :
+    { (pc[I]: l4)
+    (idx[I]: I) OCs }
+    => { (pc[I]: if I == n then ws else l4 fi)
+       (idx[I]: if I == n then I else I + 1 fi) OCs } .
+  crl [sendReq2] :
+    { (pc[I]: l4)
+    (idx[I]: X)
+    (rn[I]: RN)
+    (nw: NW) OCs }
+    => { (pc[I]: if X == n then ws else l4 fi)
+       (idx[I]: if X == n then 1 else X + 1 fi)
+       (rn[I]: RN)
+       (nw: (msg(X,req(I,RN[I])) NW)) OCs }
+    if X =/= I .
+  --- waitPriv
+  rl [waitPriv] :
+    { (pc[I]: ws)
+    (havePriv[I]: F)
+    (ln[I]: LN')
+    (queue[I]: Q')
+    (nw: (msg(I,priv(Q,LN)) NW)) OCs }
+    => { (pc[I]: cs)
+       (havePriv[I]: true)
+       (ln[I]: LN)
+       (queue[I]: Q)
+       (nw: NW) OCs } .
+  --- exit
+  rl [exit] :
+    { (pc[I]: cs) OCs }
+    => { (pc[I]: l6) OCs } .
+  --- completeReq
+  rl [completeReq] :
+    { (pc[I]: l6)
+    (rn[I]: RN)
+    (ln[I]: LN)
+    (idx[I]: X) OCs }
+    => { (pc[I]: l7)
+       (rn[I]: RN)
+       (ln[I]: LN[I] := RN[I])
+       (idx[I]: 1) OCs } .
+  --- updateQueue
+  rl [updateQueue1] :
+    { (pc[I]: l7)
+    (idx[I]: I) OCs }
+    => { (pc[I]: if I == n then l8 else l7 fi)
+       (idx[I]: if I == n then I else I + 1 fi) OCs } .
+  crl [updateQueue2] :
+    { (pc[I]: l7)
+    (idx[I]: X)
+    (rn[I]: RN)
+    (ln[I]: LN)
+    (queue[I]: Q) OCs }
+    => { (pc[I]: if X == n then l8 else l7 fi)
+       (idx[I]: if X == n then 1 else X + 1 fi)
+       (rn[I]: RN)
+       (ln[I]: LN)
+       (queue[I]: if not(X \in Q) and (RN[X] == (LN[X]) + 1)
+                  then put(Q,X)
+                  else Q
+                  fi)
+       OCs }
+    if X =/= I .
+  --- checkQueue
+  rl [checkQueue] :
+    { (pc[I]: l8)
+    (queue[I]: Q) OCs }
+    => { (pc[I]: if empty?(Q) then l10 else l9 fi)
+       (queue[I]: Q) OCs } .
+  --- transferPriv
+  rl [transferPriv] :
+    { (pc[I]: l9)
+    (havePriv[I]: F)
+    (ln[I]: LN)
+    (queue[I]: Q)
+    (nw: NW) OCs }
+    => { (pc[I]: l10)
+       (havePriv[I]: false)
+       (ln[I]: LN)
+       (queue[I]: Q)
+       (nw: (msg(top(Q),priv(get(Q),LN)) NW)) OCs } .
+***(
+  --- resetReq
+  rl [resetReq] :
+    { (pc[I]: l10)
+    (requesting[I]: F) OCs }
+    => { (pc[I]: rs)
+       (requesting[I]: false) OCs } .
+)***
+  --- finish
+  rl [resetReq] :
+    { (pc[I]: l10)
+    (cnt: s(X))
+    (requesting[I]: F) OCs }
+    => { (pc[I]: fs)
+       (cnt: X)
+       (requesting[I]: false) OCs } .
+  --- stutter
+    rl [stutter] : { (cnt: 0) OCs } => { (cnt: 0) OCs } .
+  --- receiveReq
+  crl [receiveReq] :
+    { (pc[I]: L)
+    (requesting[I]: F)
+    (havePriv[I]: F')
+    (rn[I]: RN)
+    (ln[I]: LN)
+    (queue[I]: Q)
+    (nw: (msg(I,req(J,X)) NW)) OCs }
+    =>{  (pc[I]: L)
+       (requesting[I]: F)
+       (havePriv[I]: if C then false else F' fi)
+       (rn[I]: RN[J] := Max)
+       (ln[I]: LN)
+       (queue[I]: Q)
+       (nw: if C then (msg(J,priv(Q,LN)) NW) else NW fi) OCs }
+    if I =/= J /\ L =/= l7 /\ L =/= l8 /\ L =/= l10 /\
+       Max := if (RN[J]) < X then X else RN[J] fi /\
+       C := F' and not(F) and Max == (LN[J]) + 1 .
+---
+--- initial state
+---
+  op node : Nat -> Sys .
+  op init : -> Config .
+  op initNodes : Nat -> Sys .
+
+  var N : Nat .
+
+  eq node(I) = (pc[I]: rs)
+               (requesting[I]: false)
+               (havePriv[I]: (I == 2))
+               (rn[I]: ia)
+               (ln[I]: ia)
+               (queue[I]: empty)
+               (idx[I]: 1) .
+
+
+  eq initNodes(N) = if N > 0 then node(N) initNodes(sd(N, 1)) else none fi .
+
+  eq n = 4 .
+  --- eq m = 2 .
+  eq init = { initNodes(n) (nw: void) (cnt: n) } .
+endm
+
+---
+--- search [1] init =>* { (pc[2]: cs) OCs:Sys } .
+--- search [1] init =>* { (cnt: 0) OCs:Sys } .
+---
+
+in model-checker .
+
+mod SKDMXA-PREDS is
+  pr SKDMXA .
+  inc SATISFACTION .
+  subsort Config < State .
+  op wait : Nat -> Prop .
+  op crit : Nat -> Prop .
+  var I : Nat .
+  var OCs : Sys .
+  var NW : Network .
+  eq {(pc[I]: ws) OCs} |= wait(I) = true .
+  eq {(pc[I]: cs) OCs} |= crit(I) = true .
+endm
+
+mod SKDMXA-CHECK is
+  inc SKDMXA-PREDS .
+  inc MODEL-CHECKER .
+  inc LTL-SIMPLIFIER .
+
+  op lofree : -> Formula .
+  eq lofree = wait(1) |-> crit(1) .
+endm
+
+---
+---   red modelCheck(init, lofree) .
+---

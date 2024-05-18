@@ -1,0 +1,78 @@
+mod IO is
+    pr DCA2MC-GRAMMAR .
+    pr STD-STREAM .
+    pr META-LEVEL .
+    pr LEXICAL .
+    pr DATABASE .
+
+    var Atts : AttributeSet .
+    vars TL IN : TermList .
+    vars S S' OUT : String .
+    vars T : Term .
+    vars Ty : Type .
+    var  X@Class : Cid .
+    var  O : Oid .
+    var RP? : ResultPair? .
+
+    sort State .
+    
+    --- state of the application
+    op init : -> State [ctor] .
+    op wait : -> State [ctor] .
+    op print : -> State [ctor] .
+    op idle : -> State [ctor] .
+    op execComm : -> State [ctor] .
+    op quit : -> State [ctor] .
+
+    --- attributes
+    op input:_ : TermList -> Attribute [ctor] .
+    op state:_ : State -> Attribute [ctor] .
+    op default:_ : Header -> Attribute [ctor] .
+    op db:_ : Database -> Attribute [ctor] .
+    op current:_ : Module -> Attribute [ctor] .
+
+    --- Object and class definition
+    op o : -> Oid [ctor] .
+    op DCA2MC : -> Cid [ctor] .
+
+    --- initial value for attributes
+    op initAtts : -> AttributeSet .
+    eq initAtts = db: emptyDB, state: init, input: empty, default: 'NAT, current: upModule('NAT, false) .
+
+    rl [init] :
+       < O : X@Class | state: init, Atts >
+    => < O : X@Class | state: print, Atts >
+        write(stdout, O, "\n\n\t\tA Tableau-based Approach to Model Checking Linear Temporal Properties\n\n\n") .
+    
+    rl [wrote] :
+        < O : X@Class | state: print, Atts > wrote(O, stdout)
+    =>  < O : X@Class | state: idle, Atts > .
+
+    rl [input] :
+        < O : X@Class | state: idle, Atts >
+     => < O : X@Class | state: wait, Atts >
+        getLine(stdin, O, "DCA2MC> ") .
+
+    crl [parseComm] :
+        < O : X@Class | state: wait, input: empty, Atts >
+        gotLine(O, stdin, S)
+    =>  if RP? :: ResultPair then
+            < O : X@Class | state: execComm, input: getTerm(RP?), Atts >
+        else
+            < O : X@Class | state: print, input: empty, Atts >
+            write(stdout, O, "Cannot parse the command\n")
+        fi
+    if RP? := metaParse(DCA2MC-GRAMMAR, tokenize(S), '@Input@) .
+    --- [print RP?] .
+
+    rl [quit] :
+        < O : X@Class | state: execComm, input: 'q.@Command@, Atts >
+    =>  < O : X@Class | state: quit, input: empty > .
+    --- =>  < O : X@Class | state: quit, input: empty, Atts > .
+
+    op run : -> Configuration [ctor] .
+    eq run = 
+    <> < o : DCA2MC | initAtts > .
+endm
+
+

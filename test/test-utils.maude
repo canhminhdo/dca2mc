@@ -1,0 +1,56 @@
+load ../debug.maude
+load ../specs/qlock.maude
+load ../full-maude-lite.maude
+load ../utils.maude
+
+--- red extractType(upModule('QLOCK-CHECK, true), 'init) .
+--- red extractType(upModule('QLOCK-CHECK, true), 'lofree) .
+--- red isModule('Canh) .
+--- red isModule('QLOCK-CHECK) .
+--- red buildTerm('init, extractType(upModule('QLOCK-CHECK, true), 'init)) .
+--- red buildTerm('lofree, extractType(upModule('QLOCK-CHECK, true), 'lofree)) .
+
+red getAllSuccessors(upModule('QLOCK-CHECK, false), 'init.Config, 'X:Config) .
+red genSeqs(upModule('QLOCK-CHECK, false), 'init.Config, 'X:Config, 1) .
+red checkSat(upModule('QLOCK-CHECK, false), 'init.Config, 'inWs1.Prop) .
+red checkSat(upModule('QLOCK-CHECK, false), 'init.Config, '~_['inWs1.Prop]) .
+red genSeqs(upModule('QLOCK-CHECK, false), 'init.Config, 'X:Config, 2) .
+
+eof
+
+(
+
+'init.Config, 
+'`{_`}['__['queue:_['p1.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid,'ss.Loc]]], 
+'`{_`}['__['queue:_['p1.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ss.Loc]]]) || 
+
+('init.Config, 
+'`{_`}['__['queue:_['p1.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ss.Loc]]], 
+'`{_`}['__['queue:_['p2.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ss.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]]) || 
+
+('init.Config, 
+'`{_`}['__['queue:_['p2.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ss.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]], 
+'`{_`}['__['queue:_['p1.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ss.Loc]]]) || 
+
+('init.Config, 
+'`{_`}['__['queue:_['p2.Pid],'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ss.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]], 
+'`{_`}['__['queue:_['p2.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ss.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]])
+
+
+result NeTermListSet: 
+
+('init.Config, 
+'`{_`}['__['queue:_['p1.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid,'ss.Loc]]],
+'`{_`}['__['queue:_['p1.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'cs.Loc], 'pc`[_`]:_['p2.Pid, 'ss.Loc]]]) || 
+
+('init.Config, 
+'`{_`}['__['queue:_['p1.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ss.Loc]]], 
+'`{_`}['__['queue:_['_|_['p1.Pid, 'p2.Pid]], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]]) || 
+
+('init.Config, 
+'`{_`}['__['queue:_['p2.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ss.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]], 
+'`{_`}['__['queue:_['p2.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ss.Loc], 'pc`[_`]:_['p2.Pid, 'cs.Loc]]]) || 
+
+('init.Config, 
+'`{_`}['__['queue:_['p2.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ss.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]], 
+'`{_`}['__['queue:_['_|_['p2.Pid,'p1.Pid]], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]])

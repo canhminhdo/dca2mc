@@ -1,0 +1,168 @@
+***
+*** Loop {
+***      Remainder Section
+***  rs: place[i] : fetch&incmode(next, N);
+***  ws: repeat until array[place[i]];
+***      Critical Section
+***  cs: array[place[i]], array[(place[i]+1) % N] := false, true;
+*** }
+***
+*** One or more processes execute this program and share queue that is a
+*** queue of process IDs.
+*** rs, l1, ws and cs stand for remainder section, intermediate section between remainder section and waiting section.
+*** waiting section and critical section.
+*** Each process is located at one of rs, l1, ws and cs.
+*** Each statement located at rs, l1 and cs is atomically processed.
+*** Morevoer, going to rs from cs is conducted at the same moment when
+*** the statement located at cs is processed.
+*** Each iteration of the loop located at ws is atomically processed.
+*** Nothing is done in both Remainder Section and Critical Section in
+*** the formal model.
+*** Initially, each process is located at rs.
+***
+
+fmod LOC is
+  sort Loc .
+  ops rs ws cs fs : -> Loc [ctor] .
+endfm
+
+fmod PID is
+  sort Pid .
+  ops p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 : -> Pid [ctor] .
+endfm
+
+fmod SOUP {D :: TRIV} is
+    sort Soup{D} .
+    subsort D$Elt < Soup{D} .
+    op empty : -> Soup{D} [ctor] .
+    op _ _ : Soup{D} Soup{D} -> Soup{D} [ctor assoc comm id: empty] .
+endfm
+
+fmod NAT+DEC is
+  pr NAT .
+  op dec : Nat -> Nat .
+  var N : Nat .
+  eq dec(0) = 0 .
+  eq dec(s(N)) = N .
+endfm
+
+fmod OCOMP is
+    pr LOC .
+    pr PID .
+    pr NAT+DEC .
+    sort OComp .
+    op (pc[_]:_) : Pid Loc -> OComp [ctor] .
+    op (place[_]:_) : Pid Nat -> OComp [ctor] .
+    op (next:_) : Nat -> OComp [ctor] .
+    op (array[_]:_) : Nat Bool -> OComp [ctor] .
+    op (cnt:_) :  Nat -> OComp [ctor] .
+endfm
+
+view OComp from TRIV to OCOMP is
+  sort Elt to OComp .
+endv
+
+fmod CONFIG is
+  pr SOUP{OComp} .
+  sort Config .
+  op {_} : Soup{OComp} -> Config [ctor] .
+  op init : -> Config .
+  op init5 : -> Config .
+  op init6 : -> Config .
+  op init7 : -> Config .
+  op init8 : -> Config .
+  op init9 : -> Config .
+  op init10 : -> Config .
+  eq init = {(pc[p1]: rs) (pc[p2]: rs)
+            (place[p1]: 0) (place[p2]: 0)
+            (next: 0)
+            (array[0]: true) (array[1]: false)
+            (cnt: 2)} .
+  eq init5 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs)
+            (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0)
+            (next: 0)
+            (array[0]: true) (array[1]: false) (array[2]: false) (array[3]: false) (array[4]: false)
+            (cnt: 5)} .
+  eq init6 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs) (pc[p6]: rs)
+            (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0) (place[p6]: 0)
+            (next: 0)
+            (array[0]: true) (array[1]: false) (array[2]: false) (array[3]: false) (array[4]: false) (array[5]: false)
+            (cnt: 6)} .
+  eq init7 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs) (pc[p6]: rs) (pc[p7]: rs)
+            (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0) (place[p6]: 0) (place[p7]: 0)
+            (next: 0)
+            (array[0]: true) (array[1]: false) (array[2]: false) (array[3]: false) (array[4]: false) (array[5]: false) (array[6]: false)
+            (cnt: 7)} .
+  eq init8 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs) (pc[p6]: rs) (pc[p7]: rs) (pc[p8]: rs)
+            (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0) (place[p6]: 0) (place[p7]: 0) (place[p8]: 0)
+            (next: 0)
+            (array[0]: true) (array[1]: false) (array[2]: false) (array[3]: false) (array[4]: false) (array[5]: false) (array[6]: false) (array[7]: false)
+            (cnt: 8)} .
+  eq init9 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs) (pc[p6]: rs) (pc[p7]: rs) (pc[p8]: rs) (pc[p9]: rs)
+            (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0) (place[p6]: 0) (place[p7]: 0) (place[p8]: 0) (place[p9]: 0)
+            (next: 0)
+            (array[0]: true) (array[1]: false) (array[2]: false) (array[3]: false) (array[4]: false) (array[5]: false) (array[6]: false) (array[7]: false) (array[8]: false)
+            (cnt: 9)} .
+  eq init10 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs) (pc[p6]: rs) (pc[p7]: rs) (pc[p8]: rs) (pc[p9]: rs) (pc[p10]: rs)
+            (place[p1]: 0) (place[p2]: 0) (place[p3]: 0) (place[p4]: 0) (place[p5]: 0) (place[p6]: 0) (place[p7]: 0) (place[p8]: 0) (place[p9]: 0) (place[p10]: 0)
+            (next: 0)
+            (array[0]: true) (array[1]: false) (array[2]: false) (array[3]: false) (array[4]: false) (array[5]: false) (array[6]: false) (array[7]: false) (array[8]: false) (array[9]: false)
+            (cnt: 10)} .
+endfm
+
+mod ANDERSON is
+    inc CONFIG .
+
+    var I : Pid .
+    vars N N1 C : Nat .
+    vars B1 B2 : Bool .
+    var OCs : Soup{OComp} .
+
+    op #procs : -> Nat . 
+    eq #procs = 9 .
+
+    rl [incNxt&setPlc] : {(pc[I]: rs) (next: N) (place[I]: N1) OCs} => {(pc[I]: ws) (next: (( N + 1) rem #procs)) (place[I]: N) OCs}.
+    rl [wait] : {(pc[I]: ws) (place[I]: N) (array[N]: true) OCs} => {(pc[I]: cs) (place[I]: N) (array[N]: true) OCs} .
+    crl [chArray] : {(pc[I]: cs) (place[I]: N) (array[N]: B1) (array[N1]: B2) (cnt: C) OCs} => {(pc[I]: fs) (place[I]: N) (array[N]: false) (array[N1]: true) (cnt: dec(C)) OCs} if N1 = (N + 1) rem #procs .
+    rl [fin] : {(cnt: 0) OCs} => {(cnt: 0) OCs} .
+endm
+
+***
+*** search [1] in ANDERSON : init =>* (pc[p1]: cs) (pc[p2]: cs) S .
+*** search in ANDERSON : init =>* S .
+
+***
+*** search [1] in ANDERSON : init =>! S .
+*** no solutions meaning that there is no deadlock state and equally
+*** the binary relation over states is total
+***
+
+in model-checker .
+
+mod ANDERSON-PREDS is
+    pr ANDERSON .
+    inc SATISFACTION .
+    subsort Config < State .
+    ops inWs1 inCs1 inFs1 : -> Prop .
+    var OCs : Soup{OComp} .
+    var PROP : Prop .
+    eq {(pc[p1]: ws) OCs} |= inWs1 = true .
+    eq {(pc[p1]: cs) OCs} |= inCs1 = true .
+    eq {(pc[p1]: fs) OCs} |= inFs1 = true .
+    eq {OCs} |= PROP = false [owise] .
+endm
+
+mod ANDERSON-CHECK is
+    inc ANDERSON-PREDS .
+    inc MODEL-CHECKER .
+    inc LTL-SIMPLIFIER .
+    op lofree : -> Formula .
+    eq lofree = inWs1 |-> inCs1 .
+    op halt : -> Formula .
+    eq halt = <> inFs1 .
+endm
+
+***
+*** red in ANDERSON-CHECK : modelCheck(init, lofree) .
+*** red in ANDERSON-CHECK : modelCheck(init5, lofree) .
+***

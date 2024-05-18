@@ -1,0 +1,159 @@
+fmod DATA is
+  pr NAT .
+  sort Data .
+  op d : Nat -> Data [ctor] .
+endfm
+
+fmod PAIR {D1 :: TRIV, D2 :: TRIV } is
+  sort Pair{D1,D2} .
+  op <_,_> : D1$Elt D2$Elt -> Pair{D1,D2} [ctor] .
+endfm
+
+view Data from TRIV to DATA is
+  sort Elt to Data .
+endv
+
+fmod DB-PAIR is
+  pr PAIR{Data,Bool} .
+endfm
+
+fmod ILIST {D :: TRIV} is
+  pr NAT .
+  sort IList{D} .
+  subsort D$Elt < IList{D} .
+  op nil : -> IList{D} [ctor] .
+  op _|_ : IList{D} IList{D} -> IList{D} [ctor assoc id: nil] .
+  op _\in_ : D$Elt IList{D} -> Bool .
+  op size : IList{D} -> Nat .
+  var E : D$Elt .
+  vars L L1 L2 : IList{D} .
+  eq E \in (L1 | E | L2)  = true .
+  eq E \in L = false [owise] .
+  eq size(nil) = 0 .
+  eq size(E | L) = size(L) + 1 .
+endfm
+
+fmod CELL {D :: TRIV} is
+  sort Cell{D} .
+  op empc : -> Cell{D} [ctor] .
+  op c : D$Elt -> Cell{D} .
+endfm
+
+view DB-Pair from TRIV to DB-PAIR is
+  sort Elt to Pair{Data,Bool} .
+endv
+
+fmod SOUP {D :: TRIV} is
+  sort Soup{D} .
+  subsort D$Elt < Soup{D} .
+  op empty : -> Soup{D} [ctor] .
+  op _ _ : Soup{D} Soup{D} -> Soup{D} [ctor assoc comm id: empty] .
+endfm
+
+fmod OCOMP is
+  pr CELL{DB-Pair} .
+  pr CELL{Bool} .
+  pr ILIST{Data} .
+  sort OComp .
+  op (sb:_) : Bool -> OComp [ctor] .
+  op (data:_) : Data -> OComp [ctor] .
+  op (rb:_) : Bool -> OComp [ctor] .
+  op (buf:_) : IList{Data} -> OComp [ctor] .
+  op (dc:_) : Cell{DB-Pair} -> OComp [ctor] .
+  op (ac:_) : Cell{Bool} -> OComp [ctor] .
+  op (sizeddrp:_) : Nat -> OComp [ctor] .
+  op (sizeddup:_) : Nat -> OComp [ctor] .
+  op (sizeadrp:_) : Nat -> OComp [ctor] .
+  op (sizeadup:_) : Nat -> OComp [ctor] .
+  op (rsw:_) : Bool -> OComp [ctor] .
+endfm
+
+view OComp from TRIV to OCOMP is
+  sort Elt to OComp .
+endv
+
+fmod OCOMP-SOUP is
+  pr SOUP{OComp} .
+endfm
+
+fmod CONFIG is
+  pr OCOMP-SOUP .
+  sorts Config .
+  op {_} : Soup{OComp} -> Config [ctor] .
+  op init : -> Config .
+  --- parameters ---
+  ops sizeDrp sizeDup : -> Nat .
+  eq sizeDrp = 3 .
+  eq sizeDup = 3 .
+  ---
+  eq init = {(sb: true) (data: d(0)) (rb: true) (buf: nil) (dc: empc) (ac: empc)
+                   (sizeddrp: sizeDrp) (sizeadrp: sizeDrp) (rsw: true) } .
+endfm
+
+mod SCP is
+  inc CONFIG .
+  vars B B' : Bool .
+  var D : Data .
+  var P : Pair{Data,Bool} .
+  vars N X Y : Nat .
+  var NzN : NzNat .
+  var Ds : IList{Data} .
+  var OCs : Soup{OComp} .
+--- parameters ---
+  op sizeData : -> Nat .
+  op CCap : -> Nat .
+  eq sizeData = 50000 .
+  --- eq sizeData = 10000 .
+  --- eq sizeData = 5000 .
+  --- eq sizeData = 500 .
+  eq CCap = 3 .
+---
+  crl [d-snd] : {(sb: B) (data: d(N)) (dc: empc) OCs}
+    => {(sb: B) (data: d(N)) (dc: (c(< d(N),B >))) OCs}
+  if N < sizeData .
+  crl [a-rec1] : {(sb: B) (data: d(N)) (ac: (c(B'))) (sizeadrp: X) OCs}
+    => {(sb: (not B)) (data: d(N + 1)) (ac: empc) (sizeadrp: sizeDrp) OCs}
+  if B =/= B' .
+  crl [a-rec2] : {(sb: B) (data: D) (ac: (c(B'))) OCs}
+    => {(sb: B) (data: D) (ac: empc) OCs}
+  if B = B' .
+  rl [a-snd] : {(rb: B) (ac: empc) (rsw: false) OCs}
+    => {(rb: B) (ac: (c(B))) (rsw: true) OCs} .
+  crl [d-rec1] : {(rb: B) (buf: Ds) (dc: (c(< D,B' >))) (sizeddrp: X) (rsw: true) OCs}
+    => {(rb: (not B)) (buf: (Ds | D)) (dc: empc) (sizeddrp: sizeDrp) (rsw: false) OCs}
+  if B = B' .
+  crl [d-rec2] : {(rb: B) (buf: Ds) (dc: (c(< D,B' >))) (rsw: true) OCs}
+    => {(rb: B) (buf: Ds) (dc: empc) (rsw: false) OCs}
+  if B =/= B' .
+  rl [d-drp] : {(dc: (c(P))) (sizeddrp: NzN) OCs}
+    => {(dc: empc) (sizeddrp: sd(NzN,1)) OCs} .
+  rl [a-drp] : {(ac: (c(B))) (sizeadrp: NzN) OCs}
+    => {(ac: empc) (sizeadrp: sd(NzN,1)) OCs} .
+endm
+
+in model-checker .
+
+mod SCP-PREDS is
+  pr SCP .
+  inc SATISFACTION .
+  subsort Config < State .
+  ops sndX recX : -> Prop .
+  var OCs : Soup{OComp} .
+  vars Ds1 Ds2 : IList{Data} .
+  var PROP : Prop .
+  eq {(data: d(100)) OCs} |= sndX = true .
+  eq {(buf: (Ds1 | d(100) | Ds2)) OCs} |= recX = true .
+  eq {OCs} |= PROP = false [owise] .
+endm
+
+mod SCP-CHECK is
+  inc SCP-PREDS .
+  inc MODEL-CHECKER .
+  inc LTL-SIMPLIFIER .
+  op progCommX : -> Formula .
+  eq progCommX = sndX |-> recX .
+endm
+
+***(
+red in SCP-CHECK : modelCheck(init,progCommX) .
+)***

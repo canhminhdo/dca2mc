@@ -1,0 +1,10 @@
+load full-maude-lite.maude
+load file.maude
+load metaInterpreter.maude
+load grammar.maude
+load utils.maude
+load database.maude
+load io.maude
+load parsing.maude
+load processing.maude
+load handling.maude

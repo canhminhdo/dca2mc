@@ -1,0 +1,667 @@
+fmod FORMULA is
+    pr META-LEVEL .
+
+    vars QI : Qid .
+    vars T T1 T2 : Term .
+    vars TL : TermList .
+    vars Ct : Constant .
+
+    op len : Term -> Nat .
+    eq len(QI[T]) = len(T) + 1 .
+    eq len(QI[T1, T2]) = len(T1) + len(T2) + 1 .
+    eq len(Ct) = 1 .
+
+    --- ops True False : -> Formula [ctor format (g o)] .
+    --- op ~_ : Formula -> Formula [ctor prec 53 format (r o d)] .
+    --- op _/\_ : Formula Formula -> Formula [comm ctor gather (E e) prec 55 format (d r o d)] .
+    --- op _\/_ : Formula Formula -> Formula [comm ctor gather (E e) prec 59 format (d r o d)] .
+    --- op O_ : Formula -> Formula [ctor prec 53 format (r o d)] .
+    --- op _U_ : Formula Formula -> Formula [ctor prec 63 format (d r o d)] .
+    --- op _R_ : Formula Formula -> Formula [ctor prec 63 format (d r o d)] .
+
+    op isLiteral : Term -> Bool .
+    eq isLiteral(Ct) = true .
+    eq isLiteral('~_[Ct]) = true .
+    eq isLiteral(T) = false [owise] .
+
+    op isNextF : Term -> Bool .
+    eq isNextF('O_[TL]) = true .
+    --- eq isNextF('_U_[TL]) = true .
+    --- eq isNextF('_R_[TL]) = true .
+    eq isNextF(T) = false [owise] .
+
+    op isAlphaF : Term -> Bool .
+    eq isAlphaF('_/\_[TL]) = true .
+    eq isAlphaF(T) = false [owise] .
+
+    op isBetaF : Term -> Bool . 
+    eq isBetaF('_\/_[TL]) = true .
+    eq isBetaF(T) = false [owise] .
+endfm
+
+fmod NAT-SET is
+  protecting SET{Nat} * (sort NeSet{Nat} to NeNatSet, sort Set{Nat} to NatSet) .
+endfm
+
+fmod NODE is
+    pr FM-TERMSET .
+    pr FORMULA . 
+    pr NAT-SET .
+    
+    sorts Node Entry NodeType .
+
+    vars Nd : Node .
+    vars Ty : NodeType .
+    vars NS : NatSet .
+    vars ID : Nat .
+    vars TS TS' : TermSet .
+    vars T T1 T2 : Term .
+    vars Ct : Constant .
+
+    ops empty closed open state ordinary : -> NodeType [ctor] .
+    
+    op `{_`} : TermSet -> Node .
+    --- simplifying the set of formulas
+    ceq { 'False.FalseFormula | TS } = { 'False.FalseFormula } if TS =/= emptyTermSet .
+    ceq { 'True.TrueFormula | TS } = { TS } if TS =/= emptyTermSet .
+    eq { T | ('~_[T]) | TS } = { 'False.FalseFormula } .
+
+    op {node:_, type:_, childs:_} : Node NodeType NatSet -> Entry .
+    
+    op getType : Entry -> NodeType .
+    eq getType({node: Nd, type: Ty, childs: NS}) = Ty .
+
+    op getNode : Entry -> Node .
+    eq getNode({node: Nd, type: Ty, childs: NS}) = Nd .
+
+    op getChilds : Entry -> NatSet .
+    eq getChilds({node: Nd, type: Ty, childs: NS}) = NS .
+
+    op addLeaf : Entry Nat -> Entry .
+    eq addLeaf({node: Nd, type: Ty, childs: NS}, ID) = {node: Nd, type: Ty, childs: insert(ID, NS)} .
+
+    op getNodeType : Node -> NodeType .
+    op getNodeType : TermSet -> NodeType .
+    
+    eq getNodeType({ TS }) = getNodeType(TS) .
+    eq getNodeType(TS) = 
+        if hasOnlyLiterals(TS) then
+            if hasCompPair(TS) then
+                closed
+            else
+                open
+            fi
+        else
+            if hasOnlyLiterals&Next(TS) then
+                state
+            else
+                ordinary
+            fi
+        fi 
+    .
+
+    op hasOnlyLiterals&Next : TermSet -> Bool .
+    eq hasOnlyLiterals&Next(T | TS) = if (isLiteral(T) or isNextF(T))
+                                      then hasOnlyLiterals&Next(TS)
+                                      else false
+                                      fi .
+    eq hasOnlyLiterals&Next(emptyTermSet) = true .
+
+    op hasOnlyLiterals : TermSet -> Bool .
+    eq hasOnlyLiterals(T | TS) = if isLiteral(T) then hasOnlyLiterals(TS) else false fi .
+    eq hasOnlyLiterals(emptyTermSet) = true .
+
+    --- has a complementary pair of literals
+    op hasCompPair : TermSet -> Bool .
+    eq hasCompPair(Ct | ('~_[Ct]) | TS) = true .
+    eq hasCompPair(('False.FalseFormula) | TS) = true .
+    eq hasCompPair(TS) = false [owise] .
+
+    op literals : Node -> TermSet .
+    eq literals({ T | TS }) = if isLiteral(T) then T | literals({ TS })  else literals({ TS }) fi .
+    eq literals({ emptyTermSet }) = emptyTermSet .
+
+    op next : Node -> Node .
+    op next* : TermSet -> TermSet .
+    eq next({ TS }) = { next*(TS) } .
+    eq next*(T | TS) = if isNextF(T) then rmNextOperator(T) | next*(TS) else next*(TS) fi .
+    eq next*(emptyTermSet) = emptyTermSet .
+
+    op rmNextOperator : Term -> Term .
+    eq rmNextOperator('O_[T]) = T .
+endfm
+
+view Node from TRIV to NODE is
+    sort Elt to Node .
+endv
+
+view Entry from TRIV to NODE is
+    sort Elt to Entry .
+endv
+
+fmod NODE-TO-ID is
+    pr MAP{Node,Nat} * ( sort Map{Node,Nat} to NodeToId ) .
+endfm
+
+fmod ID-TO-NODE is
+    pr MAP{Nat,Entry} * ( sort Map{Nat,Entry} to IdToNode ) .
+endfm
+
+fmod NODE-SET is
+    protecting SET{Node} * (sort NeSet{Node} to NeNodeSet, sort Set{Node} to NodeSet) .
+    
+    vars TS TS' : TermSet .
+    vars NS : NodeSet .
+    --- eq ({ TS }, {TS | TS'}) = { TS } . --- too general ???
+    op simplifyNodes : NodeSet -> NodeSet .
+    eq simplifyNodes(({ TS }, {TS | TS'}, NS)) = simplifyNodes(({ TS }, NS)) .
+    eq simplifyNodes(NS) = NS [owise] .
+endfm
+
+view NodeSet from TRIV to NODE-SET is
+    sort Elt to NodeSet .
+endv
+
+view Term from TRIV to META-TERM is
+    sort Elt to Term .
+endv
+
+fmod TABLEAU is
+    pr NODE-TO-ID .
+    pr ID-TO-NODE .
+    pr NODE-SET .
+
+    sort Tableau .
+
+    vars TB TB' TB'' : Tableau .
+    vars T T1 T2 : Term .
+    vars TS : TermSet .
+    vars Nd Nd' Nd'' : Node .
+    vars NS NS' NS'' : NodeSet .
+    vars N ID ID' ID'' : Nat .
+    vars N2ID N2ID' : NodeToId .
+    vars ID2N ID2N' ID2N'' : IdToNode .
+    vars ET : Entry .
+    vars Ty : NodeType .
+    vars NtS NtS' : NatSet .
+
+    op `{cnt:_,node2id:_,id2node:_`} : Nat NodeToId IdToNode -> Tableau .
+
+    op size : Tableau -> Nat .
+    eq size({cnt: N, node2id: N2ID, id2node: ID2N}) = N .
+
+    op getInitNode : Tableau -> Node .
+    eq getInitNode({cnt: N, node2id: N2ID, id2node: ID2N}) = getNode(ID2N[0]) .
+
+    op getChildNodes : Tableau NatSet -> NodeSet .
+    ceq getChildNodes(TB, (ID, NtS)) = getNode(ID2N[ID]), getChildNodes(TB, NtS) 
+    if {cnt: N, node2id: N2ID, id2node: ID2N} := TB .
+
+    eq getChildNodes(TB, empty) = empty .
+    
+    --- find leveas by nodes
+    op leaves : Tableau NodeSet -> NodeSet [memo] .
+    ceq leaves(TB, (Nd, NS)) 
+    =  if (Ty == closed or Ty == open or Ty == state) then (Nd, leaves(TB, NS)) else 
+            leaves(TB, (NS, getChildNodes(TB, NtS)))
+        fi
+    if {cnt: N, node2id: N2ID, id2node: ID2N} := TB
+    /\ ID := N2ID[Nd]
+    /\ ET := ID2N[ID]
+    /\ Ty := getType(ET) 
+    /\ NtS := getChilds(ET) .
+    eq leaves(TB, empty) = empty .
+    
+    op leaves* : Tableau NodeSet -> NatSet [memo] .
+    ceq leaves*(TB, (Nd, NS)) 
+    =  if (Ty == closed or Ty == open or Ty == state) then (ID, leaves*(TB, NS)) else 
+            leaves*(TB, (NS, getChildNodes(TB, NtS)))
+        fi
+    if {cnt: N, node2id: N2ID, id2node: ID2N} := TB
+    /\ ID := N2ID[Nd]
+    /\ ET := ID2N[ID]
+    /\ Ty := getType(ET) 
+    /\ NtS := getChilds(ET) .
+    eq leaves*(TB, empty) = empty .
+
+    --- find leaves by ids
+    op leavesByIds : Tableau NatSet -> NodeSet [memo] .
+    ceq leavesByIds(TB, (ID, NtS)) 
+    =  if (Ty == closed or Ty == open or Ty == state) then (getNode(ET), leavesByIds(TB, NtS)) else 
+            leavesByIds(TB, (NtS, NtS'))
+        fi
+    if {cnt: N, node2id: N2ID, id2node: ID2N} := TB
+    /\ ET := ID2N[ID]
+    /\ Ty := getType(ET) 
+    /\ NtS' := getChilds(ET) .
+    eq leavesByIds(TB, empty) = empty .
+
+    op leavesByIds* : Tableau NatSet -> NatSet [memo] .
+    ceq leavesByIds*(TB, (ID, NtS)) 
+    =  if (Ty == closed or Ty == open or Ty == state) then (ID, leavesByIds*(TB, NtS)) else 
+            leavesByIds*(TB, (NtS, NtS'))
+        fi
+    if {cnt: N, node2id: N2ID, id2node: ID2N} := TB
+    /\ ET := ID2N[ID]
+    /\ Ty := getType(ET) 
+    /\ NtS' := getChilds(ET) .
+    eq leavesByIds*(TB, empty) = empty .
+
+    op buildTableau : Term -> Tableau .
+    eq buildTableau(T) = buildTableau(
+        { T }, 
+        {cnt: 1, node2id: ({ T } |-> 0), id2node: (0 |-> { node: { T }, type: getNodeType(T), childs: (empty) })}
+    ) .
+    
+    op buildTableau : NodeSet Tableau -> Tableau .
+    eq buildTableau((Nd, NS), TB) = buildTableau(Nd, NS, TB) .
+    eq buildTableau(empty, TB) = TB .
+
+    op buildTableau : Node NodeSet Tableau -> Tableau .
+    ceq buildTableau(Nd, NS, TB) = 
+        if Ty == closed or Ty == open then
+            buildTableau(NS, TB)
+        else
+            if Ty == ordinary then
+                handleAlphaF(Nd, NS, TB)
+            else
+                handleStateNode(Nd, NS, TB)
+            fi
+        fi
+    if {cnt: N, node2id: N2ID, id2node: ID2N} := TB
+    /\ Ty := getType(ID2N[N2ID[Nd]]) 
+    .
+
+    --- handle alpha formulas in a node
+    op handleAlphaF : Node NodeSet Tableau -> Tableau .
+    ceq handleAlphaF({ ('_/\_[T1, T2]) | TS }, NS, TB) = 
+        buildTableau(union(NS', NS), TB')
+    if Nd := { ('_/\_[T1, T2]) | TS }
+    /\ Nd' := { T1 | T2 | TS } 
+    /\ TB' := addNode(Nd, Nd', TB)
+    /\ NS' := (if size(TB) == size(TB') then empty else Nd' fi) .
+
+    eq handleAlphaF(Nd, NS, TB) = handleBetaF(Nd, NS, TB) [owise] .
+
+    --- handle beta formulas in a node
+    op handleBetaF : Node NodeSet Tableau -> Tableau .
+    ceq handleAlphaF({ ('_\/_[T1, T2]) | TS }, NS, TB) = 
+        buildTableau(union(NS'', union(NS', NS)), TB'')
+    if Nd := { ('_\/_[T1, T2]) | TS }
+    /\ Nd' := { T1 | TS }
+    /\ Nd'' := { T2 | TS } 
+    /\ TB' := addNode(Nd, Nd', TB)
+    /\ TB'' := addNode(Nd, Nd'', TB')
+    /\ NS' := (if size(TB) == size(TB') then empty else Nd' fi)
+    /\ NS'' := (if size(TB') == size(TB'') then empty else Nd'' fi)
+    .
+
+    eq handleBetaF(Nd, NS, TB) = handleNextF(Nd, NS, TB) [owise] .
+
+    --- handle next formulas in a node
+    op handleNextF : Node NodeSet Tableau -> Tableau .
+    ceq handleNextF({ ('_U_[T1, T2]) | TS }, NS, TB) = 
+        buildTableau(union(NS'', union(NS', NS)), TB'')
+    if Nd := { ('_U_[T1, T2]) | TS }
+    /\ Nd' := { T2 | TS }
+    /\ Nd'' := { T1 | ('O_['_U_[T1, T2]]) | TS } 
+    /\ TB' := addNode(Nd, Nd', TB)
+    /\ TB'' := addNode(Nd, Nd'', TB')
+    /\ NS' := (if size(TB) == size(TB') then empty else Nd' fi)
+    /\ NS'' := (if size(TB') == size(TB'') then empty else Nd'' fi)
+    .
+    ceq handleNextF({ ('_R_[T1, T2]) | TS }, NS, TB) = 
+        buildTableau(union(NS'', union(NS', NS)), TB'')
+    if Nd := { ('_R_[T1, T2]) | TS }
+    /\ Nd' := { T1 | T2 | TS }
+    /\ Nd'' := { T2 | ('O_['_R_[T1, T2]]) | TS } 
+    /\ TB' := addNode(Nd, Nd', TB)
+    /\ TB'' := addNode(Nd, Nd'', TB')
+    /\ NS' := (if size(TB) == size(TB') then empty else Nd' fi)
+    /\ NS'' := (if size(TB') == size(TB'') then empty else Nd'' fi)
+    .
+    --- ceq handleBetaF(Nd, NS, TB) = handleNextF(Nd, NS, TB) [owise] .
+
+    --- handle state node
+    op handleStateNode : Node NodeSet Tableau -> Tableau .
+    ceq handleStateNode( { TS }, NS, TB) = buildTableau(union(NS', NS), TB')
+    if Nd := { TS }
+    /\ Nd' := next(Nd)
+    /\ TB' := addNode(Nd, Nd', TB)
+    /\ NS' := (if size(TB) == size(TB') then empty else Nd' fi) .
+
+    op addNode : Node Node Tableau -> Tableau .
+    --- for an existing node
+    ceq addNode(Nd, Nd', { cnt: N, node2id: N2ID, id2node: ID2N })
+    = { cnt: N, node2id: N2ID, id2node: ID2N' }
+    if $hasMapping(N2ID, Nd') 
+    /\ ID := N2ID[Nd]
+    /\ ID' := N2ID[Nd'] 
+    /\ ID2N' := insert(ID, addLeaf(ID2N[ID], ID'), ID2N) --- add ID' as a leaf of node ID
+    .
+
+    ceq addNode(Nd, Nd', { cnt: N, node2id: N2ID, id2node: ID2N }) 
+    --- for a new node
+    = { cnt: N + 1, node2id: N2ID', id2node: ID2N''}
+    if not $hasMapping(N2ID, Nd')
+    /\ ID := N2ID[Nd]
+    /\ ID' := N
+    /\ N2ID' := insert(Nd', ID', N2ID) --- add a new entry ID' |-> Nd'
+    /\ ID2N' := insert(ID, addLeaf(ID2N[ID], ID'), ID2N) --- add node ID' as a leaf of node ID
+    /\ ID2N'' := insert(ID', {node: Nd', type: getNodeType(Nd'), childs: empty}, ID2N') --- add a new entry for node ID'
+    .
+endfm
+
+fmod STATE-FORMULAS is
+    pr 2TUPLE{Term,NodeSet} * (op `(_`,_`) to `{_:_`},
+        op p1_ to getState,
+        op p2_ to getNodeSet,
+        sort Tuple{Term,NodeSet} to State&Formulas) .
+endfm
+
+view SF from TRIV to STATE-FORMULAS is
+    sort Elt to State&Formulas .
+endv
+
+fmod STATE-FORMULAS-SET is
+    pr SET{SF} * (sort NeSet{SF} to NeSFSet, sort Set{SF} to SFSet, op empty : -> Set{SF} to emptySFS) .
+    
+    vars T T' : Term .
+    vars Nd : Node .
+    vars TS TS1 TS2 : TermSet .
+    vars NS NS' : NodeSet .
+    vars SFS : SFSet .
+
+    op simplifySFS : SFSet -> SFSet .
+    eq simplifySFS(({T : {T' | TS1}}, {T : {T' | TS2}}, SFS)) = simplifySFS(({T : {'True.TrueFormula | TS1}}, {T : {T' | TS2}}, SFS)) .
+    eq simplifySFS(({T : {'True.TrueFormula}}, SFS)) = simplifySFS(SFS) .
+    eq simplifySFS(({T : NS}, {T : (NS, NS')}, SFS)) = simplifySFS(({T : NS}, SFS)) .
+    eq simplifySFS(SFS) = SFS [owise] .
+endfm
+
+fmod DB-CONFIG is
+    pr META-LEVEL .
+    pr NAT-LIST .
+    pr TABLEAU .
+    pr STATE-FORMULAS-SET .
+    pr LEXICAL .
+    pr CONVERSION .
+
+    sorts DBConfig ResultType .
+    ops satisfied unstatisfied unknown : -> ResultType [ctor] .
+    
+    op qid : ResultType -> Type .
+    eq qid(satisfied) = 'satisfied .
+    eq qid(unstatisfied) = 'unstatisfied .
+    eq qid(unknown) = 'unknown .
+    
+    op qid : Nat -> Qid .
+    eq qid(N:Nat) = tokenize(string(N:Nat,10)) .
+
+    op (module:_)       : Qid               -> DBConfig [ctor format (! o o)] .
+    op (initState:_)    : Term              -> DBConfig [ctor format (! o o)] .
+    op (formula:_)      : Term              -> DBConfig [ctor format (! o o)] .
+    op (redInitState:_) : Term              -> DBConfig [ctor format (! o o)] .
+    op (redFormula:_)   : Term              -> DBConfig [ctor format (! o o)] .
+    op (atoms:_)        : TermSet           -> DBConfig [ctor format (! o o)] .
+    op (depthList:_)    : NatList           -> DBConfig [ctor format (! o o)] .
+    op (currentDepth:_) : Nat               -> DBConfig [ctor format (! o o)] .
+    op (tableau:_)      : Tableau           -> DBConfig [ctor format (! o o)] .
+    op (sfSet:_)        : SFSet             -> DBConfig [ctor format (! o o)] .
+    op (result:_)       : ResultType        -> DBConfig [ctor format (! o o)] .
+endfm
+
+view DBConfig from TRIV to DB-CONFIG is
+    sort Elt to DBConfig .
+endv
+
+fmod CONFIG-SET is
+    pr SET{DBConfig} * (sort NeSet{DBConfig} to NeDBConfigSet, sort Set{DBConfig} to DBConfigSet, op empty : -> Set{DBConfig} to emptyDBConfig) .
+endfm
+
+fmod DATABASE is
+    pr CONFIG-SET .
+
+    sort Database .
+
+    vars QI : Qid .
+    vars T : Term .
+    vars TS : TermSet .
+    vars NL NL' : NatList .
+    vars N N' : Nat .
+    vars TB : Tableau .
+    vars SFS SFS' : SFSet .
+    vars CF : DBConfig .
+    vars CFS : DBConfigSet .
+    vars DB : Database .
+    vars RT RT' : ResultType .
+
+    op emptyDB : -> Database [ctor] .
+    op {_} : DBConfigSet -> Database .
+    
+    op isEmptyDB : Database -> Bool .
+    eq isEmptyDB(emptyDB) = true .
+    eq isEmptyDB(DB) = false [owise] .
+    
+    op getModule  : Database -> Qid .
+    op getStateSort : Database -> Type .
+    op getInitState  : Database -> Term .
+    op getFormula  : Database -> Term .
+    op getRedInitState  : Database -> Term .
+    op getRedFormula  : Database -> Term .
+    op getAtoms : Database -> TermSet .
+    op getDepthList : Database -> NatList .
+    op getCurrentDepth : Database -> Nat .
+    op getTableau : Database -> Tableau .
+    op getSfSet : Database -> SFSet .
+    op getResult : Database -> ResultType .
+    
+    eq getModule({(module: QI), CFS}) = QI .
+    eq getStateSort({(initState: T), CFS}) = getType(T) .
+    eq getInitState({(initState: T), CFS}) = T .
+    eq getFormula({(formula: T), CFS}) = T .
+    eq getRedInitState({(redInitState: T), CFS}) = T .
+    eq getRedFormula({(redFormula: T), CFS}) = T .
+    eq getAtoms({(atoms: TS), CFS}) = TS .
+    eq getDepthList({(depthList: NL), CFS}) = NL .
+    eq getCurrentDepth({(currentDepth: N), CFS}) = N .
+    eq getTableau({(tableau: TB), CFS}) = TB .
+    eq getSfSet({(sfSet: SFS), CFS}) = SFS .
+    eq getResult({(result: RT), CFS}) = RT .
+
+    op evalDB : Database DBConfigSet -> Database .
+    op evalDB* : Database DBConfig -> Database .
+
+    eq evalDB(DB, (CF, CFS)) = evalDB(evalDB*(DB, CF), CFS) .
+    eq evalDB(DB, emptyDBConfig) = DB .
+    
+    eq evalDB*({(currentDepth: N), CFS}, (currentDepth: N')) = {(currentDepth: N'), CFS} .
+    eq evalDB*({(depthList: NL), CFS}, (depthList: NL')) = {(depthList: NL'), CFS} .
+    eq evalDB*({(sfSet: SFS), CFS}, (sfSet: SFS')) = {(sfSet: SFS'), CFS} .
+    eq evalDB*({(result: RT), CFS}, (result: RT')) = {(result: RT'), CFS} .
+
+    --- sum of nat list
+    op sum : NatList -> Nat .
+    eq sum(N NL) = N + sum(NL) .
+    eq sum(nil) = 0 .
+endfm
+
+fmod CHECKER is
+    pr DATABASE .
+    pr DCA2MC-UTILS .
+
+    vars M : Module .
+    vars SF : State&Formulas .
+    vars SFS SFS' SFS'' : SFSet .
+    vars NL : NatList .
+    vars N D : Nat .
+    vars RT : ResultType .
+    vars Nd : Node .
+    vars NS NS' NS'' : NodeSet .
+    vars N2ID : NodeToId .
+    vars ID2N : IdToNode .
+    vars TB : Tableau .
+    vars T T1 T2 VAR CX F : Term .
+    vars TS : TermSet .
+    vars Ty : NodeType .
+    vars B : Bool .
+    vars TL : TermList .
+    vars TLS : TermListSet .
+
+    sorts Result4Checking Result4TryEval .
+    
+    op <_|_> : ResultType SFSet -> Result4Checking .
+    op <_|_> : ResultType NodeSet -> Result4TryEval .
+    
+    op collect : Module Tableau Term SFSet NatList -> Result4Checking .
+    ceq collect(M, TB, VAR, SFS, N NL) =    if RT == unstatisfied then 
+                                                < unstatisfied | emptySFS >
+                                            else 
+                                                if RT == satisfied then 
+                                                    < satisfied | emptySFS >
+                                                else 
+                                                    collect(M, TB, VAR, simplifySFS(SFS'), NL) 
+                                                fi
+                                            fi
+    if < RT | SFS' > := layerCheck(M, TB, VAR, SFS, N) .
+    eq collect(M, TB, VAR, SFS, nil) = < unknown | SFS > .
+    
+    op layerCheck : Module Tableau Term SFSet Nat -> Result4Checking .
+    op layerCheck* : Module Tableau Term SFSet Nat SFSet -> Result4Checking .
+    op layerCheck** : Module Tableau Term State&Formulas Nat -> Result4Checking .
+    
+    eq layerCheck(M, TB, VAR, SFS, N) = layerCheck*(M, TB, VAR, SFS, N, emptySFS) .
+    ceq layerCheck*(M, TB, VAR, (SF, SFS), N, SFS') =   if RT == unstatisfied then
+                                                            < unstatisfied | emptySFS >
+                                                        else
+                                                            if RT == satisfied then
+                                                                layerCheck*(M, TB, VAR, SFS, N, SFS')
+                                                            else
+                                                                layerCheck*(M, TB, VAR, SFS, N, union(SFS', SFS'')) 
+                                                            fi
+                                                        fi
+    if < RT | SFS'' > := layerCheck**(M, TB, VAR, SF, N) .
+    eq layerCheck*(M, TB, VAR, emptySFS, N, SFS) =  if SFS == emptySFS then
+                                                        < satisfied | emptySFS >
+                                                    else < unknown | SFS > fi .
+
+    --- Nd is a set of formulas { T1 | T2 | ... }
+    ceq layerCheck**(M, TB, VAR, { T : NS }, N) = layerCheckPaths(M, TB, TLS, NS, emptySFS)
+    if TLS := genSeqs(M, T, VAR, N) .
+
+    --- check all paths with NS
+    op layerCheckPaths : Module Tableau TermListSet NodeSet SFSet -> Result4Checking .
+    ceq layerCheckPaths(M, TB, TL || TLS, NS, SFS) = if RT == unstatisfied then
+                                                    < unstatisfied | emptySFS >
+                                                else
+                                                    if RT == satisfied then
+                                                        layerCheckPaths(M, TB, TLS, NS, SFS)
+                                                    else
+                                                        layerCheckPaths(M, TB, TLS, NS, union(SFS', SFS))
+                                                    fi
+                                                fi
+    if < RT | SFS' > := layerCheckPath(M, TB, TL, NS) .
+    eq layerCheckPaths(M, TB, emptyTLS, NS, SFS) =  if SFS == emptySFS then
+                                                        < satisfied | emptySFS >
+                                                    else < unknown | SFS > fi .
+
+    op layerCheckPath : Module Tableau TermList NodeSet -> Result4Checking .
+    ceq layerCheckPath(M, TB, (T1, T2, TL), NS) = if RT == unstatisfied then
+                                                    < unstatisfied | emptySFS >
+                                                else
+                                                    if RT == satisfied then
+                                                        < satisfied | emptySFS >
+                                                    else
+                                                        layerCheckPath(M, TB, (T2, TL), NS')
+                                                    fi
+                                                fi
+    if < RT | NS' > := tryEval(M, TB, T1, NS) .
+    eq layerCheckPath(M, TB, T, NS) = < unknown | { T : NS } > .
+
+    --- check whether M, T |= literals(Nd)
+    op checkNode : Module Term Node -> Bool .
+    eq checkNode(M, T, Nd) = checkSatForNode(M, T, literals(Nd)) .
+
+    op checkSatForNode : Module Term TermSet -> Bool .
+    ceq checkSatForNode(M, T, T1 | TS) = if B then checkSatForNode(M, T, TS) else false fi
+    if B := checkSat(M, T, T1) .
+    eq checkSatForNode(M, T, emptyTermSet) = true .
+
+    --- Check whether M, T |= Nd
+    op tryEvalOne : Module Tableau Term Node -> Result4TryEval .
+    op tryEvalOne* : Module Tableau Term NodeSet NodeSet -> Result4TryEval .
+    eq tryEvalOne(M, TB, T, Nd) = tryEvalOne*(M, TB, T, leaves(TB, Nd), empty) .
+    ceq tryEvalOne*(M, TB, T, (Nd, NS), NS') =   if Ty == closed then
+                                                    tryEvalOne*(M, TB, T, NS, NS')
+                                                else
+                                                    if checkNode(M, T, Nd) then
+                                                        if Ty == open then
+                                                            < satisfied | empty >
+                                                        else
+                                                            tryEvalOne*(M, TB, T, NS, (next(Nd), NS'))
+                                                        fi
+                                                    else 
+                                                        tryEvalOne*(M, TB, T, NS, NS')
+                                                    fi
+                                                fi
+    if {cnt: N, node2id: N2ID, id2node: ID2N} := TB
+    /\ Ty := getType(ID2N[N2ID[Nd]]) .
+
+    eq tryEvalOne*(M, TB, T, empty, NS') =  if NS' == empty then 
+                                                < unstatisfied | empty > 
+                                            else < unknown | simplifyNodes(NS') > fi .
+
+    op tryEval : Module Tableau Term NodeSet -> Result4TryEval .
+    op tryEval* : Module Tableau Term NodeSet NodeSet -> Result4TryEval .
+    eq tryEval(M, TB, T, NS) = tryEval*(M, TB, T, NS, empty) .
+    ceq tryEval*(M, TB, T, (Nd, NS), NS') = if RT == unstatisfied then
+                                                tryEval*(M, TB, T, NS, NS')
+                                            else
+                                                if RT == satisfied then
+                                                    < satisfied | empty >
+                                                else
+                                                    tryEval*(M, TB, T, NS, union(NS'', NS'))
+                                                fi
+                                            fi
+    if < RT | NS'' > := tryEvalOne(M, TB, T, Nd) .
+    eq tryEval*(M, TB, T, empty, NS') = if NS' == empty then 
+                                            < unstatisfied | empty > 
+                                        else < unknown | simplifyNodes(NS') > fi .
+
+    *** checking last layer
+    op lastLayerCheck : Module SFSet -> Bool .
+    op lastLayerCheckNodeSet : Module Term NodeSet -> Bool .
+    op lastLayerCheckNode : Module Term Node -> Bool .
+
+    ceq lastLayerCheck(M, ({T : NS}, SFS)) = if B then
+                                                lastLayerCheck(M, SFS)
+                                            else
+                                                false
+                                            fi 
+    if B := lastLayerCheckNodeSet(M, T, NS) .
+    --- /\ N := | NS |
+    --- [print "| NS | = " N] .
+    eq lastLayerCheck(M, emptySFS) = true .
+    
+    ceq lastLayerCheckNodeSet(M, T, (Nd, NS)) =  if B then 
+                                                    true 
+                                                else 
+                                                    lastLayerCheckNodeSet(M, T, NS)
+                                                fi 
+    if B := lastLayerCheckNode(M, T, Nd) .
+    --- /\ { TS } := Nd
+    --- /\ N := size(TS)
+    --- [print "\t| Nd | = " N] .
+
+    eq lastLayerCheckNodeSet(M, T, empty) = false .
+    
+    ceq lastLayerCheckNode(M, T, {F | TS}) = if (CX :: Constant) then
+                                                lastLayerCheckNode(M, T, {TS})
+                                             else
+                                                false
+                                             fi   
+    if CX := getTerm(metaReduce(M, 'modelCheck[T, F])) .
+    eq lastLayerCheckNode(M, T, {emptyTermSet}) = true .
+endfm
+
+eof

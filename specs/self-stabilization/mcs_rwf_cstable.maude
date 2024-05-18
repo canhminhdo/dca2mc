@@ -1,0 +1,287 @@
+fmod LABEL is
+    sort Label .
+    ops re terminated : -> Label [ctor] .
+    ops en1 en2 en3 en4 en5 en6 en7 en8 en9 en10 : -> Label [ctor] .
+    ops cs ex1 ex2 ex3 ex4 : -> Label [ctor] .
+endfm
+
+fmod PID is
+    sort Pid .
+    ops p1 p2 p3 : -> Pid [ctor] .
+endfm
+
+fmod NAT+DEC is
+    pr NAT .
+    op dec : Nat -> Nat .
+    var N : Nat .
+    eq dec(0) = 0 .
+    eq dec(s(N)) = N .
+endfm
+
+fmod NODE is
+    pr NAT+DEC .
+    pr BOOL .
+    sorts NodeRef Node .
+    subsort Nat < NodeRef .
+    op null : -> NodeRef [ctor] .
+    op `(_,_`) : NodeRef Bool -> Node [ctor] . --- (next,lock)
+endfm
+
+view Node from TRIV to NODE is
+    sort Elt to Node .
+endv
+
+fmod ENV is
+    pr MAP{Nat,Node} * ( sort Map{Nat,Node} to Env ) .
+endfm
+
+fmod PSTATE is
+    sort PState .
+    ops FREE INIT TRY INCS LEAVE : -> PState [ctor] .
+endfm
+
+fmod OCOMP is
+    pr LABEL .
+    pr PID .
+    pr ENV .
+    pr PSTATE .
+    sort OComp .
+
+    op (tail:_) : NodeRef -> OComp [ctor] .
+    op (pc[_]:_) : Pid Label -> OComp [ctor] .
+    op (state[_]:_) : Pid PState -> OComp [ctor] .
+    op (mine[_]:_) : Pid NodeRef -> OComp [ctor] .
+    op (pred[_]:_) : Pid NodeRef -> OComp [ctor] .
+    op (temp[_]:_) : Pid NodeRef -> OComp [ctor] .
+    op (crash:_) : Bool -> OComp [ctor] .
+    op (env:_) : Env -> OComp [ctor] .
+    op (ref:_) : Nat -> OComp [ctor] .
+    op (#maxAlloc:_) : Nat -> OComp [ctor] .
+    op (#psFree:_) : Nat -> OComp [ctor] .
+    op (#ps:_) : Nat -> OComp [ctor] .
+    op (#crash:_) : Nat -> OComp [ctor] .
+    op (isMutex:_) : Bool -> OComp [ctor] .
+endfm
+
+view OComp from TRIV to OCOMP is
+    sort Elt to OComp .
+endv
+
+fmod SOUP{D :: TRIV} is
+    sort Soup{D} .
+    subsort D$Elt < Soup{D} .
+    op empty : -> Soup{D} [ctor] .
+    op __ : Soup{D} Soup{D} -> Soup{D} [ctor assoc comm id: empty] .
+endfm
+
+fmod CONFIG is
+    pr SOUP{OComp} .
+    sort Config .
+
+    op {_} : Soup{OComp} -> Config [ctor] .
+    ops init init3 : -> Config .
+
+    eq init = {
+        (tail: null)
+        (pc[p1]: re) (pc[p2]: re)
+        (state[p1]: FREE) (state[p2]: FREE)
+        (mine[p1]: null) (mine[p2]: null)
+        (pred[p1]: null) (pred[p2]: null)
+        (temp[p1]: null) (temp[p2]: null)
+        (crash: false)
+        (env: empty)
+        (ref: 0)
+        (#maxAlloc: 6)
+        (#psFree: 2)
+        (#ps: 2)
+        (#crash: 1)
+        (isMutex: true)
+    } .
+
+    eq init3 = {
+        (tail: null)
+        (pc[p1]: re) (pc[p2]: re) (pc[p3]: re)
+        (state[p1]: FREE) (state[p2]: FREE) (state[p3]: FREE)
+        (mine[p1]: null) (mine[p2]: null) (mine[p3]: null)
+        (pred[p1]: null) (pred[p2]: null) (pred[p3]: null)
+        (temp[p1]: null) (temp[p2]: null) (temp[p3]: null)
+        (crash: false)
+        (env: empty)
+        (ref: 0)
+        (#maxAlloc: 6)
+        (#psFree: 3)
+        (#ps: 3)
+        (#crash: 1)
+        (isMutex: true)
+    } .
+endfm
+
+mod MCS-RWF is
+    pr CONFIG .
+
+    vars P Q : Pid .
+    vars B B' : Bool .
+    vars OCs : Soup{OComp} .
+    vars S : PState .
+    vars N N' C C' : Nat .
+    vars E : Env .
+    vars R R' R'' RN RN' : NodeRef .
+    vars L : Label .
+
+    op isTerminate : Config -> Bool .
+    eq isTerminate({(#crash: 0) (crash: false) OCs}) = true .
+    eq isTerminate({OCs}) = false [owise] .
+
+    crl [recover] : {(pc[P]: re) (state[P]: S) (pred[P]: R) (mine[P]: R') (#psFree: N) OCs}
+    => {(pc[P]: (if S == LEAVE then
+                    ex1
+                else (
+                    if S == TRY and R == R' then
+                        ex1
+                    else
+                        en1
+                    fi)
+                fi))
+        (state[P]: (if S == FREE then INIT else S fi))
+        (pred[P]: R)
+        (mine[P]: (if S == FREE then null else R' fi))
+        (#psFree: dec(N))
+        OCs}
+    if not isTerminate({OCs}) .
+
+    crl [checkState1] : {(pc[P]: en1) (state[P]: S) OCs}
+    => {(pc[P]: (if S == INIT then en2 else en4 fi)) (state[P]: S) OCs}
+    if not isTerminate({OCs}) .
+
+    crl [terminated] : {(pc[P]: en2) (mine[P]: R) (ref: C) (#maxAlloc: C') OCs}
+    => {(pc[P]: if R == null then terminated else en3 fi) (mine[P]: R) (ref: C) (#maxAlloc: C') OCs}
+    if C == C' /\ not isTerminate({OCs}) .
+
+    crl [initMine] : {(pc[P]: en2) (mine[P]: R) (ref: C) (#maxAlloc: C') (env: E) OCs}
+    => {(pc[P]: en3) (mine[P]: (if R == null then C else R fi))
+        (ref: (if R == null then (C + 1) else C fi))
+        (#maxAlloc: C')
+        (env: (if R == null then insert(C, (null, false), E) else E fi))
+        OCs}
+    if C < C' /\ not isTerminate({OCs}) .
+
+    crl [init] : {(pc[P]: en3) (mine[P]: R) (pred[P]: R') (state[P]: S) (env: (R |-> (RN, B), E)) OCs}
+    => {(pc[P]: en4) (mine[P]: R) (pred[P]: R) (state[P]: TRY) (env: (R |-> (null, true), E)) OCs}
+    if not isTerminate({OCs}) .
+
+    crl [checkState2] : {(pc[P]: en4) (state[P]: S) OCs}
+    => {(pc[P]: (if S == TRY then en5 else ex1 fi)) (state[P]: S) OCs}
+    if not isTerminate({OCs}) .
+
+    crl [checkPred1] : {(pc[P]: en5) (pred[P]: R) (mine[P]: R') OCs}
+    => {(pc[P]: (if R == R' then en6 else en8 fi)) (pred[P]: R) (mine[P]: R') OCs}
+    if not isTerminate({OCs}) .
+
+    crl [setTail] : {(pc[P]: en6) (tail: R) (mine[P]: R') (temp[P]: R'') OCs}
+    => {(pc[P]: en7) (tail: R') (mine[P]: R') (temp[P]: R) OCs}
+    if not isTerminate({OCs}) .
+
+    crl [setPred] : {(pc[P]: en7) (pred[P]: R) (temp[P]: R') OCs}
+    => {(pc[P]: en8) (pred[P]: R') (temp[P]: R') OCs}
+    if not isTerminate({OCs}) .
+
+    crl [crash] : {(pc[P]: en7) (crash: B) (#crash: N) OCs}
+    => {(pc[P]: re) (crash: true) (#crash: dec(N)) OCs} if N > 0 .
+
+    crl [checkPred2] : {(pc[P]: en8) (pred[P]: R) OCs}
+    => {(pc[P]: (if R =/= null then en9 else cs fi)) (pred[P]: R) OCs}
+    if not isTerminate({OCs}) .
+
+    crl [setNext1] : {(pc[P]: en9) (pred[P]: R) (mine[P]: R') (env: (R |-> (RN, B), E)) OCs}
+    => {(pc[P]: (if RN == null then en10 else cs fi))
+        (pred[P]: R)
+        (mine[P]: R')
+        (env: (R |-> (if RN == null then R' else RN fi, B), E)) OCs}
+    if not isTerminate({OCs}) .
+
+    crl [checkLock] : {(pc[P]: en10) (mine[P]: R) (env: (R |-> (RN, B), E)) OCs}
+    => {(pc[P]: if B == true then en10 else cs fi) (mine[P]: R) (env: (R |-> (RN, B), E)) OCs}
+    if not isTerminate({OCs}) .
+
+    --- rl [checkLock] : {(pc[P]: en10) (mine[P]: R) (env: (R |-> (RN, false), E)) OCs}
+    --- => {(pc[P]: cs) (mine[P]: R) (env: (R |-> (RN, false), E)) OCs} . --- does not mind to use either ???
+
+    crl [exit] : {(pc[P]: cs) (state[P]: S) OCs}
+    => {(pc[P]: ex1) (state[P]: INCS) OCs}
+    if not isTerminate({OCs}) .
+
+    crl [setState] : {(pc[P]: ex1) (tail: R) (mine[P]: R') (state[P]: S) OCs}
+    => {(pc[P]: ex2) (tail: (if R == R' then null else R fi)) (mine[P]: R') (state[P]: LEAVE) OCs}
+    if not isTerminate({OCs}) .
+
+    crl [setNext2] : {(pc[P]: ex2) (mine[P]: R) (env: (R |-> (RN, B), E)) OCs}
+    => {(pc[P]: ex3) (mine[P]: R) (env: (R |-> ((if RN == null then R else RN fi), B), E)) OCs}
+    if not isTerminate({OCs}) .
+
+    crl [setNextLock1] : {(pc[P]: ex3) (mine[P]: R) (env: (R |-> (RN, B), (RN |-> (RN', B')), E)) OCs}
+    => {(pc[P]: ex4) (mine[P]: R) (env: (R |-> (RN, B), (RN |-> (RN', false)), E)) OCs}
+    if RN =/= R /\ not isTerminate({OCs}) .
+
+    crl [setNextLock2] : {(pc[P]: ex3) (mine[P]: R) (env: (R |-> (RN, B), E)) OCs}
+    => {(pc[P]: ex4) (mine[P]: R) (env: (R |-> (RN, B), E)) OCs}
+    if RN == R /\ not isTerminate({OCs}) .
+
+    rl [goToRecover] : {(pc[P]: ex4) (state[P]: S) (#ps: N) (#psFree: N') (crash: B) OCs}
+    => {(pc[P]: re) (state[P]: FREE) (#ps: N) (#psFree: s(N')) (crash: (if s(N') == N then false else B fi)) OCs} .
+
+    --- rl [stutter] : {(pc[P]: terminated) OCs}
+    --- => {(pc[P]: terminated) OCs} .
+
+    crl [mutex] : {(pc[P]: cs) (pc[Q]: cs) (#crash: 0) (crash: false) (isMutex: B) OCs}
+    => {(pc[P]: cs) (pc[Q]: cs) (#crash: 0) (crash: false) (isMutex: false) OCs} if B .
+
+    rl [stutter] : {(#crash: 0) (crash: false)  OCs}
+    => {(#crash: 0) (crash: false) OCs} .
+endm
+
+in model-checker .
+
+mod MCS-RWF-PREDS is
+    pr MCS-RWF .
+    inc SATISFACTION .
+    subsort Config < State .
+
+    op inCs : Pid -> Prop .
+    op inRe : Pid -> Prop .
+    op noCrash : -> Prop .
+    op noCrashAnyMore : -> Prop .
+    op crash : -> Prop .
+    op legal : -> Prop .
+    op mutex : -> Prop .
+
+    var PROP : Prop .
+    var OCs :  Soup{OComp} .
+    var P : Pid .
+
+    eq {(pc[P]: cs) OCs} |= inCs(P) = true .
+    eq {(pc[P]: re) OCs} |= inRe(P) = true .
+    eq {(crash: false) OCs} |= noCrash = true .
+    eq {(crash: false) (#crash: 0) OCs} |= noCrashAnyMore = true .
+    eq {(isMutex: true) OCs} |= mutex = true .
+    eq {(crash: true) OCs} |= crash = true .
+    eq {(crash: false) (#crash: 0) OCs} |= legal = true .
+    eq {OCs} |= PROP = false [owise] .
+endm
+
+mod MCS-RWF-CHECK is
+    inc MCS-RWF-PREDS .
+    inc MODEL-CHECKER .
+    inc LTL-SIMPLIFIER .
+
+    op mutex : -> Formula .
+    eq mutex = ([] ~(inCs(p1) /\ inCs(p2))) .
+
+    op cstable : -> Formula .
+    --- eq cstable = noCrashAnyMore |-> [] mutex .
+    eq cstable = crash |-> [] legal .
+endm
+
+--- reduce in MCS-RWF-CHECK : modelCheck(init, mutex) .
+--- reduce in MCS-RWF-CHECK : modelCheck(init, ([] noCrash) -> mutex) .
+--- reduce in MCS-RWF-CHECK : modelCheck(init, [] (noCrash -> ~ (inCs(p1) /\ inCs(p2)))) .
+reduce in MCS-RWF-CHECK : modelCheck(init, cstable) .

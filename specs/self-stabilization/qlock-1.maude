@@ -1,0 +1,151 @@
+fmod LOC is
+  sort Loc .
+  ops ss ws cs fs : -> Loc [ctor] .
+endfm
+
+fmod PID is
+  sort Pid .
+  ops p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15 : -> Pid [ctor] .
+endfm
+
+fmod QUEUE {D :: TRIV} is
+  sort Queue{D} .
+  subsort D$Elt < Queue{D} .
+  op empq : -> Queue{D} [ctor] .
+  op _|_ : Queue{D} Queue{D} -> Queue{D} [ctor assoc id: empq] .
+  op deq : Queue{D} -> Queue{D} .
+  op del : Queue{D} D$Elt -> Queue{D} .
+  var Q : Queue{D} .
+  vars E E2 : D$Elt .
+  eq deq(empq) = empq .
+  eq deq(E | Q) = Q .
+  eq del(empq,E) = empq .
+  eq del(E | Q,E) = del(Q,E) .
+  eq del(E2 | Q,E) = E2 | del(Q,E) [owise] .
+endfm
+
+view Pid from TRIV to PID is
+  sort Elt to Pid .
+endv
+
+fmod SOUP {D :: TRIV} is
+  sort Soup{D} .
+  subsort D$Elt < Soup{D} .
+  op empty : -> Soup{D} [ctor] .
+  op _ _ : Soup{D} Soup{D} -> Soup{D} [ctor assoc comm id: empty] .
+endfm
+
+fmod NAT+DEC is
+  pr NAT .
+  op dec : Nat -> Nat .
+  var N : Nat .
+  eq dec(0) = 0 .
+  eq dec(s(N)) = N .
+endfm
+
+fmod OCOMP is
+  pr LOC .
+  pr QUEUE{Pid} .
+  pr NAT+DEC .
+  sort OComp .
+  op (queue:_) : Queue{Pid} -> OComp [ctor] .
+  op (pc[_]:_) :  Pid Loc -> OComp [ctor] .
+  op (abnormal:_) : Bool -> OComp [ctor] .
+endfm
+
+view OComp from TRIV to OCOMP is
+  sort Elt to OComp .
+endv
+
+fmod CONFIG is
+  pr SOUP{OComp} .
+  sort Config .
+
+  op {_} : Soup{OComp} -> Config [ctor] .
+  op isAbnormal : Config -> Bool .
+  op isEmpty : Config -> Bool .
+
+  vars P Q : Pid .
+  var OCs : Soup{OComp} .
+
+  eq isAbnormal({(pc[P]: cs) (pc[Q]: cs) OCs}) = true .
+  eq isAbnormal({OCs}) = false [owise] .
+  eq isEmpty({(pc[P]: cs) OCs}) = false .
+  eq isEmpty({OCs}) = true [owise] .
+
+  ops init5 ainit5 : -> Config .
+  ops init10 ainit10 ainit12 ainit13 ainit14 ainit15 : -> Config .
+  eq init5 = {(queue: empq) (pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss)
+                     (pc[p4]: ss) (pc[p5]: ss) (abnormal: false)} .
+  eq ainit5 = {(queue: (p3 | p3)) (pc[p1]: ss) (pc[p2]: ss) (pc[p3]: cs)
+                     (pc[p4]: ss) (pc[p5]: cs) (abnormal: false)} .
+  eq init10 = {(queue: empq) (pc[p1]: ss) (pc[p2]: ss) (pc[p3]: ss)
+                       (pc[p4]: ss) (pc[p5]: ss) (pc[p6]: ss) (pc[p7]: ss)
+                       (pc[p8]: ss) (pc[p9]: ss) (pc[p10]: ss) (abnormal: false)} .
+  eq ainit10 = {(queue: (p3 | p3)) (pc[p1]: ss) (pc[p2]: ss) (pc[p3]: cs)
+                       (pc[p4]: ss) (pc[p5]: cs) (pc[p6]: ss) (pc[p7]: ss)
+                       (pc[p8]: ss) (pc[p9]: ss) (pc[p10]: ss) (abnormal: false)} .
+  eq ainit12 = {(queue: (p3 | p3)) (pc[p1]: ss) (pc[p2]: ss) (pc[p3]: cs)
+                       (pc[p4]: ss) (pc[p5]: cs) (pc[p6]: ss) (pc[p7]: ss)
+                       (pc[p8]: ss) (pc[p9]: ss) (pc[p10]: ss) (pc[p11]: ss) (pc[p12]: ss) (abnormal: false)} .
+  eq ainit13 = {(queue: (p3 | p3)) (pc[p1]: ss) (pc[p2]: ss) (pc[p3]: cs)
+                       (pc[p4]: ss) (pc[p5]: cs) (pc[p6]: ss) (pc[p7]: ss)
+                       (pc[p8]: ss) (pc[p9]: ss) (pc[p10]: ss) (pc[p11]: ss) (pc[p12]: ss)
+                       (pc[p13]: ss) (abnormal: false)} .
+  eq ainit14 = {(queue: (p3 | p3)) (pc[p1]: ss) (pc[p2]: ss) (pc[p3]: cs)
+                       (pc[p4]: ss) (pc[p5]: cs) (pc[p6]: ss) (pc[p7]: ss)
+                       (pc[p8]: ss) (pc[p9]: ss) (pc[p10]: ss) (pc[p11]: ss) (pc[p12]: ss)
+                       (pc[p13]: ss) (pc[p14]: ss) (abnormal: false)} .
+  eq ainit15 = {(queue: (p3 | p3)) (pc[p1]: ss) (pc[p2]: ss) (pc[p3]: cs)
+                       (pc[p4]: ss) (pc[p5]: cs) (pc[p6]: ss) (pc[p7]: ss)
+                       (pc[p8]: ss) (pc[p9]: ss) (pc[p10]: ss) (pc[p11]: ss) (pc[p12]: ss)
+                       (pc[p13]: ss) (pc[p15]: ss) (abnormal: false)} .
+endfm
+
+mod QLOCK is
+  inc CONFIG .
+  var Q : Queue{Pid} .
+  var I : Pid .
+  var OCs : Soup{OComp} .
+
+  crl [start] : {(queue: Q) (pc[I]: ss) OCs} => {(queue: (Q | I)) (pc[I]: ws) OCs} if not isAbnormal({OCs}) .
+  rl [wait] : {(queue: (I | Q)) (pc[I]: ws) OCs} => {(queue: (I | Q)) (pc[I]: cs) OCs} .
+  rl [exit] : {(queue: Q) (pc[I]: cs) OCs} => {(queue: del(Q, I)) (pc[I]: fs) OCs} .
+  rl [fin] : {(pc[I]: fs) OCs} => {(pc[I]: fs) OCs} .
+endm
+
+in model-checker .
+
+mod QLOCK-PREDS is
+  pr QLOCK .
+  inc SATISFACTION .
+  subsort Config < State .
+  ops inCs1 inCs2 inCs5 inAbnorm : -> Prop .
+  var OCs : Soup{OComp} .
+  var PROP : Prop .
+  vars I J : Pid .
+  eq {(pc[p1]: cs) OCs} |= inCs1 = true .
+  eq {(pc[p2]: cs) OCs} |= inCs2 = true .
+  eq {(pc[p5]: cs) OCs} |= inCs5 = true .
+  eq {(pc[I]: cs) (pc[J]: cs) OCs} |= inAbnorm = true .
+  eq {OCs} |= PROP = false [owise] .
+endm
+
+mod QLOCK-CHECK is
+  inc QLOCK-PREDS .
+  inc MODEL-CHECKER .
+  inc LTL-SIMPLIFIER .
+  ops prop1 prop2 : -> Formula .
+  eq prop1 = inAbnorm |-> ([] ~ (inCs1 /\ inCs5)) .
+  eq prop2 = inAbnorm |-> ([] ~ inAbnorm) .
+endm
+
+***(
+search [1] in QLOCK : ainit5 =>* {OCs} such that false .
+search [1] in QLOCK : ainit5 =>* {(abnormal: true) OCs} .
+red in QLOCK-CHECK : modelCheck(ainit5, inAbnorm |-> ([] ~ (inCs1 /\ inCs5))) .
+red in QLOCK-CHECK : modelCheck(ainit5, inAbnorm |-> ([] ~ ((inCs1 /\ inCs5) \/ (inCs1 /\ inCs2)))) .
+red in QLOCK-CHECK : modelCheck(ainit5, inAbnorm |-> ([] ~ inAbnorm)) .
+
+search [1] in QLOCK : ainit10 =>* {OCs} such that false .
+)***

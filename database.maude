@@ -528,55 +528,94 @@ fmod CHECKER is
     
     op layerCheck : Module Tableau Term SFSet Nat -> Result4Checking .
     op layerCheck* : Module Tableau Term SFSet Nat SFSet -> Result4Checking .
-    op layerCheck** : Module Tableau Term State&Formulas Nat -> Result4Checking .
+    op layerCheck** : Module Tableau Term State&Formulas -> Result4Checking .
     
-    eq layerCheck(M, TB, VAR, SFS, N) = layerCheck*(M, TB, VAR, SFS, N, emptySFS) .
+    ceq layerCheck(M, TB, VAR, SFS, N) = layerCheck*(M, TB, VAR, SFS, N, emptySFS) 
+    if N > 0 .
+    eq layerCheck(M, TB, VAR, SFS, 0) = < unknown | SFS > .
+
     ceq layerCheck*(M, TB, VAR, (SF, SFS), N, SFS') =   if RT == unstatisfied then
                                                             < unstatisfied | emptySFS >
                                                         else
                                                             if RT == satisfied then
                                                                 layerCheck*(M, TB, VAR, SFS, N, SFS')
                                                             else
-                                                                layerCheck*(M, TB, VAR, SFS, N, union(SFS', SFS'')) 
+                                                                layerCheck*(M, TB, VAR, SFS, N, union(SFS', SFS''))
                                                             fi
                                                         fi
-    if < RT | SFS'' > := layerCheck**(M, TB, VAR, SF, N) .
-    eq layerCheck*(M, TB, VAR, emptySFS, N, SFS) =  if SFS == emptySFS then
+    if < RT | SFS'' > := layerCheck**(M, TB, VAR, SF) .
+    eq layerCheck*(M, TB, VAR, emptySFS, N, SFS') = if SFS' == emptySFS then
                                                         < satisfied | emptySFS >
-                                                    else < unknown | SFS > fi .
+                                                    else
+                                                        layerCheck(M, TB, VAR, SFS', sd(N, 1))
+                                                    fi .
 
-    --- Nd is a set of formulas { T1 | T2 | ... }
-    ceq layerCheck**(M, TB, VAR, { T : NS }, N) = layerCheckPaths(M, TB, TLS, NS, emptySFS)
-    if TLS := genSeqs(M, T, VAR, N) .
+    ceq layerCheck**(M, TB, VAR, { T : NS }) =  if RT == unstatisfied then
+                                                    < unstatisfied | emptySFS >
+                                                else
+                                                    if RT == satisfied then
+                                                        < satisfied | emptySFS >
+                                                    else
+                                                        < unknown | buildSFS(TS, NS') >
+                                                    fi
+                                                fi
+    if < RT | NS' > := tryEval(M, TB, T, NS)
+    /\ TS := getAllSuccessors(M, T, VAR) .
+
+    op buildSFS : TermSet NodeSet -> SFSet .
+    eq buildSFS(T | TS, NS) = { T : NS }, buildSFS(TS, NS) .
+    eq buildSFS(emptyTermSet, NS) = emptySFS .
+
+    --- op layerCheck : Module Tableau Term SFSet Nat -> Result4Checking .
+    --- op layerCheck* : Module Tableau Term SFSet Nat SFSet -> Result4Checking .
+    --- op layerCheck** : Module Tableau Term State&Formulas Nat -> Result4Checking .
+    --- eq layerCheck(M, TB, VAR, SFS, N) = layerCheck*(M, TB, VAR, SFS, N, emptySFS) .
+    --- ceq layerCheck*(M, TB, VAR, (SF, SFS), N, SFS') =   if RT == unstatisfied then
+    ---                                                         < unstatisfied | emptySFS >
+    ---                                                     else
+    ---                                                         if RT == satisfied then
+    ---                                                             layerCheck*(M, TB, VAR, SFS, N, SFS')
+    ---                                                         else
+    ---                                                             layerCheck*(M, TB, VAR, SFS, N, union(SFS', SFS'')) 
+    ---                                                         fi
+    ---                                                     fi
+    --- if < RT | SFS'' > := layerCheck**(M, TB, VAR, SF, N) .
+    --- eq layerCheck*(M, TB, VAR, emptySFS, N, SFS) =  if SFS == emptySFS then
+    ---                                                     < satisfied | emptySFS >
+    ---                                                 else < unknown | SFS > fi .
+
+    --- --- Nd is a set of formulas { T1 | T2 | ... }
+    --- ceq layerCheck**(M, TB, VAR, { T : NS }, N) = layerCheckPaths(M, TB, TLS, NS, emptySFS)
+    --- if TLS := genSeqs(M, T, VAR, N) .
 
     --- check all paths with NS
-    op layerCheckPaths : Module Tableau TermListSet NodeSet SFSet -> Result4Checking .
-    ceq layerCheckPaths(M, TB, TL || TLS, NS, SFS) = if RT == unstatisfied then
-                                                    < unstatisfied | emptySFS >
-                                                else
-                                                    if RT == satisfied then
-                                                        layerCheckPaths(M, TB, TLS, NS, SFS)
-                                                    else
-                                                        layerCheckPaths(M, TB, TLS, NS, union(SFS', SFS))
-                                                    fi
-                                                fi
-    if < RT | SFS' > := layerCheckPath(M, TB, TL, NS) .
-    eq layerCheckPaths(M, TB, emptyTLS, NS, SFS) =  if SFS == emptySFS then
-                                                        < satisfied | emptySFS >
-                                                    else < unknown | SFS > fi .
+    --- op layerCheckPaths : Module Tableau TermListSet NodeSet SFSet -> Result4Checking .
+    --- ceq layerCheckPaths(M, TB, TL || TLS, NS, SFS) = if RT == unstatisfied then
+    ---                                                 < unstatisfied | emptySFS >
+    ---                                             else
+    ---                                                 if RT == satisfied then
+    ---                                                     layerCheckPaths(M, TB, TLS, NS, SFS)
+    ---                                                 else
+    ---                                                     layerCheckPaths(M, TB, TLS, NS, union(SFS', SFS))
+    ---                                                 fi
+    ---                                             fi
+    --- if < RT | SFS' > := layerCheckPath(M, TB, TL, NS) .
+    --- eq layerCheckPaths(M, TB, emptyTLS, NS, SFS) =  if SFS == emptySFS then
+    ---                                                     < satisfied | emptySFS >
+    ---                                                 else < unknown | SFS > fi .
 
-    op layerCheckPath : Module Tableau TermList NodeSet -> Result4Checking .
-    ceq layerCheckPath(M, TB, (T1, T2, TL), NS) = if RT == unstatisfied then
-                                                    < unstatisfied | emptySFS >
-                                                else
-                                                    if RT == satisfied then
-                                                        < satisfied | emptySFS >
-                                                    else
-                                                        layerCheckPath(M, TB, (T2, TL), NS')
-                                                    fi
-                                                fi
-    if < RT | NS' > := tryEval(M, TB, T1, NS) .
-    eq layerCheckPath(M, TB, T, NS) = < unknown | { T : NS } > .
+    --- op layerCheckPath : Module Tableau TermList NodeSet -> Result4Checking .
+    --- ceq layerCheckPath(M, TB, (T1, T2, TL), NS) = if RT == unstatisfied then
+    ---                                                 < unstatisfied | emptySFS >
+    ---                                             else
+    ---                                                 if RT == satisfied then
+    ---                                                     < satisfied | emptySFS >
+    ---                                                 else
+    ---                                                     layerCheckPath(M, TB, (T2, TL), NS')
+    ---                                                 fi
+    ---                                             fi
+    --- if < RT | NS' > := tryEval(M, TB, T1, NS) .
+    --- eq layerCheckPath(M, TB, T, NS) = < unknown | { T : NS } > .
 
     --- check whether M, T |= literals(Nd)
     op checkNode : Module Term Node -> Bool .
@@ -663,5 +702,3 @@ fmod CHECKER is
     if CX := getTerm(metaReduce(M, 'modelCheck[T, F])) .
     eq lastLayerCheckNode(M, T, {emptyTermSet}) = true .
 endfm
-
-eof

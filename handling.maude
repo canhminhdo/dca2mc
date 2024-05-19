@@ -71,7 +71,3 @@ mod DCA2MC-HANDLING is
         write(stdout, O, printTokens(QIL))
     if << DB' ; QIL >> := procLastCheckCommand('lastCheck.@Command@, DB) .
 endm
-
-eof
-
-'token[''QLOCK-CHECK.Qid]'token[''init.Qid]'token[''lofree.Qid]

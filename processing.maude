@@ -132,5 +132,3 @@ mod DCA2MC-PROCESSING is
     eq procLastCheckCommand('lastCheck.@Command@, DB) =
     << DB ; ('\r 'Error: '\o 'cannot 'find 'initialization. '\n) >> [owise] .
 endm
-
-eof

@@ -15,7 +15,6 @@ fmod DCA2MC-SIGN is
     op check : -> @Command@ .
     op showCx : -> @Command@ .
     op clear : -> @Command@ .
-    op initialize1`[_`,_`,_`,_`,_`] : @ModExp@ @Token@ @Token@ @Sort@ @Sort@ -> @Command@ .
     op initialize`[_`,_`,_`] : @ModExp@ @Token@ @Token@ -> @Command@ .
 
     --- analysis grammar
@@ -27,7 +26,7 @@ fmod DCA2MC-SIGN is
     op threshold_ : @Bubble@ -> @Command@ .
     op analyze : @Token@ @Token@ @Token@ -> @Command@ .
     op analyzeDepth : -> @Command@ .
-    --- command list in analyasis
+    --- command list in analysis
     sort @CommandList@ .
     subsort @Command@ < @CommandList@ .
     op emp : -> @CommandList@ [ctor] .

@@ -16,7 +16,6 @@ print conceal fmod_is_sorts_.____endfm
               mod_is_sorts_._____endm
               db
               if_then_else_fi
-              procDecl
               tableau:_
               node2id:_
               id2node:_

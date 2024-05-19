@@ -15,7 +15,7 @@ mod IO is
     var RP? : ResultPair? .
 
     sort State .
-    
+
     --- state of the application
     op init : -> State [ctor] .
     op wait : -> State [ctor] .
@@ -38,11 +38,26 @@ mod IO is
     --- initial value for attributes
     op initAtts : -> AttributeSet .
     eq initAtts = db: emptyDB, state: init, input: empty, default: 'NAT, current: upModule('NAT, false) .
+    
+    --- banner
+    op banner : -> String .
+    eq banner = 
+    "\n\n\t\t A Tableau-based Approach to Model Checking Linear Temporal Properties\n" +
+    "\t\t DCA2MC Version 0.1 (May 19 2023)\n" +
+    "\t\t Copyright(c) 2023, JAIST\n" +
+    "\t\t All rights reserved. \n" +
+    "\n Commands:" + 
+    "\n     layerCheck __ \t generates states with a layer configuration __ (e.g., 2 2)" +
+    "\n     lastCheck \t\t model checks for the final layer" +
+    "\n     check __ \t\t generates states with a layer configuration __ and model checks for the final layer" +
+    "\n     analyze \t\t shows the current state with some informatoin for debugging" +
+    "\n     help \t\t shows the command instructions" +
+    "\n     q \t\t\t exists the application\n\n" .
 
     rl [init] :
        < O : X@Class | state: init, Atts >
     => < O : X@Class | state: print, Atts >
-        write(stdout, O, "\n\n\t\tA Tableau-based Approach to Model Checking Linear Temporal Properties\n\n\n") .
+        write(stdout, O, banner) .
     
     rl [wrote] :
         < O : X@Class | state: print, Atts > wrote(O, stdout)

@@ -6,6 +6,7 @@ fmod DCA2MC-SIGN is
     op layerCheck_              : @Bubble@                 -> @Command@ .
     op lastCheck                :                          -> @Command@ .
     op analyze                  :                          -> @Command@ .
+    op check_                   : @Bubble@                 -> @Command@ .
     op help                     :                          -> @Command@ .
     op q                        :                          -> @Command@ .
 endfm

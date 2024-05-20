@@ -38,7 +38,7 @@ mod DCA2MC-HANDLING is
             state: (if Ty == unstatisfied or-else Ty == satisfied then quit else print fi),
             Atts >
         write(stdout, O, printTokens(QIL))
-    if << DB' ; QIL >> := procLayerCheckCommand('layerCheck_[T], DB) 
+    if << DB' ; QIL >> := procLayerCheckCommand('layerCheck_[T], DB)
     /\ Ty := getResult(DB') .
 
     crl [lastCheck] :
@@ -55,6 +55,21 @@ mod DCA2MC-HANDLING is
         write(stdout, O, printTokens(QIL))
     if << DB' ; QIL >> := procLastCheckCommand('lastCheck.@Command@, DB) .
 
+    crl [check] :
+        < O : X@Class |
+            db: DB,
+            input: ('check_[T]),
+            state: execComm,
+            Atts >
+    =>  < O : X@Class |
+            db: DB',
+            input: empty,
+            state: (if Ty == unstatisfied or-else Ty == satisfied then quit else print fi),
+            Atts >
+        write(stdout, O, printTokens(QIL))
+    if << DB' ; QIL >> := procCheckCommand('check_[T], DB)
+    /\ Ty := getResult(DB') .
+
     crl [analyze] :
         < O : X@Class |
             db: DB,
@@ -68,4 +83,17 @@ mod DCA2MC-HANDLING is
             Atts >
         write(stdout, O, printTokens(QIL))
     if QIL := procAnalyzeCommand('analyze.@Command@, DB) .
+
+    rl [help] :
+        < O : X@Class |
+            db: DB,
+            input: ('help.@Command@),
+            state: execComm,
+            Atts >
+    =>  < O : X@Class |
+            db: DB,
+            input: empty,
+            state: print,
+            Atts >
+        write(stdout, O, banner) .
 endm

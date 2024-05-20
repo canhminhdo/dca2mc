@@ -117,6 +117,46 @@ mod DCA2MC-PROCESSING is
     eq procLastCheckCommand('lastCheck.@Command@, DB) =
     << DB ; ('\r 'Error: '\o 'cannot 'find 'initialization. '\n) >> [owise] .
 
+
+    *** check command
+    op procCheckCommand : Term Database -> Tuple{Database,QidList} .
+    ceq procCheckCommand('check_[T], DB) = 
+        << DB' ; (
+            procAnalyzeCommand('analyze.@Command@, DB') '\n
+            (
+                if B then 
+                    ('\b 'Check: '\s '\o 'success '\n)
+                else 
+                    ('\r 'Check: '\s '\o 'failure '\n)
+                fi
+            )
+        ) >>
+    if not isEmptyDB(DB)
+    /\ T' := getTerm(
+                metaParse(
+                    upModule('NAT-LIST, false),
+                    downQidList(solveBubbleAndToken(T)),
+                    'NatList
+                )
+            )
+    /\ NL := downTerm(T', nil) 
+    /\ M := getModule(DB)
+    /\ SFS := getSfSet(DB)
+    /\ TB := getTableau(DB)
+    /\ < RT | SFS' > := collect(M, TB, getVarTerm(getStateSort(DB)), SFS, NL)
+    /\ DB' := evalDB(
+                DB,
+                ((currentDepth: (getCurrentDepth(DB) + sum(NL))),
+                (depthList: (append(getDepthList(DB), NL))),
+                (sfSet: SFS'),
+                (result: RT))
+            ) 
+    /\ B := if RT == unknown then lastLayerCheck(M, SFS') 
+            else (if RT == satisfied then true else false fi) fi .
+
+    eq procCheckCommand('check_[T], DB)
+    = << DB ; ('\r 'Error: '\o 'cannot 'find 'initialization. '\n) >> [owise] .
+
     *** analyze command
     op procAnalyzeCommand : Term Database -> QidList .
     ceq procAnalyzeCommand('analyze.@Command@, DB)

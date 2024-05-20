@@ -1,4 +1,3 @@
 in debug.maude .
 in specs/tas.maude
 in dca2mc
-erew run .

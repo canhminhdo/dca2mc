@@ -1,36 +1,13 @@
 *** Step 1: Define commands
 fmod DCA2MC-SIGN is
     ex FULL-MAUDE-SIGN .
-    
-    op q : -> @Command@ .
-    op layerCheck_ : @Bubble@ -> @Command@ .
-    op depthInfo_ : @Bubble@ -> @Command@ .
-    op solver-help : -> @Command@ .
-    op analyze : -> @Command@ .
-    op lastCheck : -> @Command@ .
-    op lastCheck : @Token@ @Token@ -> @Command@ .
-    op select : @Token@ @Token@ -> @Command@ .
-    op seed_ : @Token@ -> @Command@ .
-    op check_ : @Bubble@ -> @Command@ .
-    op check : -> @Command@ .
-    op showCx : -> @Command@ .
-    op clear : -> @Command@ .
-    op initialize`[_`,_`,_`] : @ModExp@ @Token@ @Token@ -> @Command@ .
 
-    --- analysis grammar
-    op close : -> @Command@ .
-    op stop : -> @Command@ .
-    op kill : -> @Command@ .
-    op show : -> @Command@ .
-    op timeout_ : @Bubble@ -> @Command@ .
-    op threshold_ : @Bubble@ -> @Command@ .
-    op analyze : @Token@ @Token@ @Token@ -> @Command@ .
-    op analyzeDepth : -> @Command@ .
-    --- command list in analysis
-    sort @CommandList@ .
-    subsort @Command@ < @CommandList@ .
-    op emp : -> @CommandList@ [ctor] .
-    op __ : @CommandList@ @CommandList@ -> @CommandList@ [ctor assoc id: emp prec 25] .
+    op initialize`[_`,_`,_`]    : @ModExp@ @Token@ @Token@ -> @Command@ .
+    op layerCheck_              : @Bubble@                 -> @Command@ .
+    op lastCheck                :                          -> @Command@ .
+    op analyze                  :                          -> @Command@ .
+    op help                     :                          -> @Command@ .
+    op q                        :                          -> @Command@ .
 endfm
 
 *** Step 2: Include into grammar

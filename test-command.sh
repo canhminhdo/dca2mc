@@ -1,9 +1,8 @@
 #!/bin/zsh
 time maude << EOF
-in debug.maude .
-in specs/tas.maude
-in dca2mc
-erew run .
+load debug.maude .
+load specs/tas.maude
+load dca2mc
 initialize[TAS-CHECK, init, lofree]
 layerCheck 2 2
 lastCheck

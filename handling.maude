@@ -1,73 +1,71 @@
 mod DCA2MC-HANDLING is
-    pr DCA2MC-PARSING .
     pr DCA2MC-PROCESSING .
-    pr IO .
+    pr DCA2MC-PARSING .
+    pr DCA2MC-IO .
 
     vars T T1 T2 T3 T4 T5 T' : Term .
     vars ME ME' : ModuleExpression .
     var Atts : AttributeSet .
-    var X@Class : Cid .
-    vars O : Oid .
-    var QIL : QidList .
     vars DB DB' : Database .
-    vars QI : Qid .
-    vars M : Module .
     vars Ty : ResultType .
+    var X@Class : Cid .
+    var QIL : QidList .
+    vars O : Oid .
     
     crl [initialize] :
         < O : X@Class |
             db: DB,
             input: ('initialize`[_`,_`,_`][T, T1, T2]),
-            default: ME,
-            current: M,
             state: execComm,
             Atts >
     =>  < O : X@Class |
             db: DB',
             input: empty,
-            default: QI,
-            current: upModule(QI, false),
             state: print,
             Atts >
         write(stdout, O, printTokens(QIL))
-    if QI := parseHeader(T)
-    /\ << DB' ; QIL >> := procInitializeCommand('initialize`[_`,_`,_`][T, T1, T2], DB) .
+    if << DB' ; QIL >> := procInitializeCommand('initialize`[_`,_`,_`][T, T1, T2], DB) .
 
     crl [layerCheck] :
         < O : X@Class |
             db: DB,
             input: ('layerCheck_[T]),
-            default: QI,
-            current: M,
             state: execComm,
             Atts >
     =>  < O : X@Class |
             db: DB',
             input: empty,
-            default: QI,
-            current: M,
             state: (if Ty == unstatisfied or-else Ty == satisfied then quit else print fi),
             Atts >
         write(stdout, O, printTokens(QIL))
     if << DB' ; QIL >> := procLayerCheckCommand('layerCheck_[T], DB) 
-    /\ Ty := getResult(DB')
-    .
+    /\ Ty := getResult(DB') .
 
     crl [lastCheck] :
         < O : X@Class |
             db: DB,
             input: ('lastCheck.@Command@),
-            default: QI,
-            current: M,
             state: execComm,
             Atts >
     =>  < O : X@Class |
             db: DB',
             input: empty,
-            default: QI,
-            current: M,
             state: print,
             Atts >
         write(stdout, O, printTokens(QIL))
     if << DB' ; QIL >> := procLastCheckCommand('lastCheck.@Command@, DB) .
+
+    crl [analyze] :
+        < O : X@Class |
+            db: DB,
+            input: ('analyze.@Command@),
+            state: execComm,
+            Atts >
+    =>  < O : X@Class |
+            db: DB,
+            input: empty,
+            state: print,
+            Atts >
+        write(stdout, O, printTokens(QIL))
+    if QIL := procAnalyzeCommand('analyze.@Command@, DB) .
 endm

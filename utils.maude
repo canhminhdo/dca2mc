@@ -9,27 +9,17 @@ fmod TERM-LIST-SET is
     subsort TermList < NeTermListSet < TermListSet .
 
     op emptyTLS : -> TermListSet [ctor] .
-    op _||_ : TermListSet TermListSet -> TermListSet [ctor assoc comm id: emptyTLS] .
+    op _||_ : TermListSet   TermListSet -> TermListSet [ctor assoc comm id: emptyTLS] .
     op _||_ : NeTermListSet TermListSet -> NeTermListSet [ctor ditto] .
     
     vars NeTLS : NeTermListSet .
-    
-    --- eq NeTLS || NeTLS = NeTLS .
 
-    --- pr SET{TermList} * (
-    ---     sort NeSet{TermList} to NeTermListSet, 
-    ---     sort Set{TermList} to TermListSet, 
-    ---     op empty : -> Set{TermList} to emptyTLS,
-    ---     op _,_ : Set{TermList} Set{TermList} -> Set{TermList} to _:_,
-    ---     op _,_ : NeSet{TermList} Set{TermList} -> NeSet{TermList} to _:_
-    --- ) .
+    eq NeTLS || NeTLS = NeTLS .
 endfm
 
 fmod DCA2MC-UTILS is
-    pr META-LEVEL .
-    pr FM-TERMSET .
-    pr CONVERSION .
     pr TERM-LIST-SET .
+    pr FM-TERMSET .
     pr EXT-BOOL .
 
     sort Bool? .
@@ -38,20 +28,26 @@ fmod DCA2MC-UTILS is
     op unknown : -> Bool? [ctor] .
     eq not unknown = unknown .
 
-    vars M : Module .
-    vars OPDS : OpDeclSet .
-    vars TyL : TypeList .
-    vars Ty : Type .
-    vars AS : AttrSet .
-    vars QI : Qid .
-    vars T T' VAR : Term .
-    vars TL : TermList .
     vars TLS TLS' : TermListSet .
-    vars Ct : Constant .
     vars RT : ResultTriple .
-    vars N : Nat .
+    vars OPDS : OpDeclSet .
+    vars T T' VAR : Term .
+    vars TyL : TypeList .
+    vars TL : TermList .
+    vars Ct : Constant .
+    vars AS : AttrSet .
     vars TS : TermSet .
+    vars M : Module .
     vars B? : Bool? .
+    vars Ty : Type .
+    vars QI : Qid .
+    vars N : Nat .
+    vars NL : NatList .
+
+    --- sum of a nat list
+    op sum : NatList -> Nat .
+    eq sum(N NL) = N + sum(NL) .
+    eq sum(nil) = 0 .
 
     --- size of term set
     op size : TermSet -> Nat .
@@ -59,12 +55,10 @@ fmod DCA2MC-UTILS is
     eq size(emptyTermSet) = 0 .
     
     --- extract type of a given qid
-    op extractType : Module Qid -> Type? .
+    op extractType : Module Qid    -> Type? .
     op extractType : OpDeclSet Qid -> Type? .
     eq extractType(M, QI) = extractType(getOps(M), QI) .
-    eq extractType(
-        (op QI : TyL -> Ty [ AS ] .) OPDS
-    , QI) = Ty .
+    eq extractType((op QI : TyL -> Ty [ AS ] .) OPDS, QI) = Ty .
     eq extractType(OPDS, QI) = anyType [owise] .
 
     --- check a valid module
@@ -87,9 +81,9 @@ fmod DCA2MC-UTILS is
     eq getVarTerm(Ty) = qid("VAR-" + string(Ty) + ":" + string(Ty)) .
 
     --- generate state sequences
-    op genSeqs   : Module Term Term Nat                     -> TermListSet .
-    op genSeqs*  : Module Term Term Nat TermList            -> TermListSet .
-    op genSeqs** : Module Term Term Nat TermList TermSet    -> TermListSet .
+    op genSeqs   : Module Term Term Nat                  -> TermListSet .
+    op genSeqs*  : Module Term Term Nat TermList         -> TermListSet .
+    op genSeqs** : Module Term Term Nat TermList TermSet -> TermListSet .
     
     eq genSeqs(M, T, VAR, N) = genSeqs*(M, T, VAR, N, T) .
     ceq genSeqs*(M, T, VAR, N, TL) = genSeqs**(M, T, VAR, N, TL, getAllSuccessors(M, T, VAR))
@@ -101,7 +95,7 @@ fmod DCA2MC-UTILS is
     eq genSeqs**(M, T, VAR, N, TL, emptyTermSet) = emptyTLS .
 
     --- get all successors states
-    op getAllSuccessors : Module Term Term -> TermSet .
+    op getAllSuccessors  : Module Term Term                   -> TermSet .
     op getAllSuccessors* : Module Term Term Nat ResultTriple? -> TermSet .
     eq getAllSuccessors(M, T, VAR) = getAllSuccessors*(
         M, T, VAR, 0,
@@ -115,8 +109,8 @@ fmod DCA2MC-UTILS is
     ) .
 
     --- check satisfiablity
-    op checkSat : Module Term Term -> Bool? .
-    op checkSatResult : Term -> Bool? .
+    op checkSat       : Module Term Term -> Bool? .
+    op checkSatResult : Term             -> Bool? .
     eq checkSat(M, T, Ct) = checkSatResult(getTerm(metaReduce(M, '_|=_[T, Ct]))) .
     eq checkSatResult('false.Bool) = false .
     eq checkSatResult('true.Bool) = true .

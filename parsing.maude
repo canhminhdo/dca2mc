@@ -1,18 +1,16 @@
 mod DCA2MC-PARSING is
-    pr MOVE-DOWN .
     pr FM-TERMSET .
+    pr MOVE-DOWN .
 
     vars T T' : Term .
-    vars TL : TermList .
-    vars QI : Qid .
-    vars Ct : Constant .
     
+    --- parse the module qid
     op parseHeader : Term -> Qid .
     eq parseHeader('token[T]) = downQid(T) .
     eq parseHeader('_`{_`}['token[T], T']) = downQid(T) .
 
     --- get term from token and bubble
     op solveBubbleAndToken : Term -> Term .
-    eq solveBubbleAndToken('token[T:Term]) = T:Term .
-    eq solveBubbleAndToken('bubble[T:Term]) = T:Term .
+    eq solveBubbleAndToken('token[T]) = T .
+    eq solveBubbleAndToken('bubble[T]) = T .
 endm

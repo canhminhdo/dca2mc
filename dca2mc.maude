@@ -4,7 +4,25 @@ load metaInterpreter.maude
 load grammar.maude
 load utils.maude
 load database.maude
+load checker.maude
 load io.maude
 load parsing.maude
 load processing.maude
 load handling.maude
+
+mod DCA2MC is
+    pr DCA2MC-HANDLING .
+    
+    --- object and class definition
+    op o      : -> Oid [ctor] .
+    op DCA2MC : -> Cid [ctor] .
+
+    --- initial value for attributes
+    op initAtts : -> AttributeSet .
+    eq initAtts = db: emptyDB, state: init, input: empty .
+
+    op run : -> Configuration [ctor] .
+    eq run = <> < o : DCA2MC | initAtts > .
+endm
+
+erew run .

@@ -145,7 +145,7 @@ fmod DCA2MC-CHECKER is
     eq checkSatForNode(M, T, emptyTermSet) = true .
 
     --- check whether M, T |= Nd
-    op tryEvalOne  : Module Tableau Term Node            -> Result4TryEval [memo] .
+    op tryEvalOne  : Module Tableau Term Node            -> Result4TryEval .
     op tryEvalOne* : Module Tableau Term NodeSet NodeSet -> Result4TryEval .
     eq tryEvalOne(M, TB, T, Nd) = tryEvalOne*(M, TB, T, leaves(TB, Nd), empty) .
     ceq tryEvalOne*(M, TB, T, (Nd, NS), NS') =   if Ty == closed then

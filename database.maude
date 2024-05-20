@@ -108,12 +108,12 @@ fmod NODE is
     eq hasCompPair(TS) = false [owise] .
 
     --- get all literals from a node
-    op literals : Node -> TermSet .
+    op literals : Node -> TermSet [memo] .
     eq literals({ T | TS }) = if isLiteral(T) then T | literals({ TS })  else literals({ TS }) fi .
     eq literals({ emptyTermSet }) = emptyTermSet .
 
     --- get all formulas from the next formulas in a node by removing the preceeding next operator
-    op next  : Node    -> Node .
+    op next  : Node    -> Node [memo] .
     op next* : TermSet -> TermSet .
     eq next({ TS }) = { next*(TS) } .
     eq next*(T | TS) = if isNextF(T) then rmNextOperator(T) | next*(TS) else next*(TS) fi .
@@ -194,7 +194,7 @@ fmod TABLEAU is
     eq getChildNodes(TB, empty) = empty .
     
     --- find leaves by nodes, returning a node set
-    op leaves : Tableau NodeSet -> NodeSet .
+    op leaves : Tableau NodeSet -> NodeSet [memo] .
     ceq leaves(TB, (Nd, NS)) 
     =  if (Ty == closed or Ty == open or Ty == state) then (Nd, leaves(TB, NS)) else 
             leaves(TB, (NS, getChildNodes(TB, NtS)))
@@ -207,7 +207,7 @@ fmod TABLEAU is
     eq leaves(TB, empty) = empty .
     
     --- find leaves by nodes, returning a nat set
-    op leaves* : Tableau NodeSet -> NatSet .
+    op leaves* : Tableau NodeSet -> NatSet [memo] .
     ceq leaves*(TB, (Nd, NS)) 
     =  if (Ty == closed or Ty == open or Ty == state) then (ID, leaves*(TB, NS)) else 
             leaves*(TB, (NS, getChildNodes(TB, NtS)))
@@ -220,7 +220,7 @@ fmod TABLEAU is
     eq leaves*(TB, empty) = empty .
 
     --- find leaves by ids, returning a node set
-    op leavesByIds : Tableau NatSet -> NodeSet .
+    op leavesByIds : Tableau NatSet -> NodeSet [memo] .
     ceq leavesByIds(TB, (ID, NtS)) 
     =  if (Ty == closed or Ty == open or Ty == state) then (getNode(ET), leavesByIds(TB, NtS)) else 
             leavesByIds(TB, (NtS, NtS'))
@@ -232,7 +232,7 @@ fmod TABLEAU is
     eq leavesByIds(TB, empty) = empty .
     
     --- find leaves by ids, returning a nat set
-    op leavesByIds* : Tableau NatSet -> NatSet .
+    op leavesByIds* : Tableau NatSet -> NatSet [memo] .
     ceq leavesByIds*(TB, (ID, NtS)) 
     =  if (Ty == closed or Ty == open or Ty == state) then (ID, leavesByIds*(TB, NtS)) else 
             leavesByIds*(TB, (NtS, NtS'))

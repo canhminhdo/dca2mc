@@ -26,7 +26,7 @@ fmod DCA2MC-CHECKER is
     *** FOR INTERMEDIATE LAYERS                          ***
     ********************************************************
 
-    op <_|_> : ResultType SFSet -> Result4Checking .
+    op <_|_> : ResultType SFSet   -> Result4Checking .
     op <_|_> : ResultType NodeSet -> Result4TryEval .
     
     --- collect all states & formulas
@@ -155,9 +155,9 @@ fmod DCA2MC-CHECKER is
                                                         if Ty == open then
                                                             < satisfied | empty >
                                                         else
-                                                            tryEvalOne*(M, TB, T, NS, (next(Nd), NS'))
+                                                            tryEvalOne*(M, TB, T, NS, union(next(Nd), NS'))
                                                         fi
-                                                    else 
+                                                    else
                                                         tryEvalOne*(M, TB, T, NS, NS')
                                                     fi
                                                 fi
@@ -166,10 +166,12 @@ fmod DCA2MC-CHECKER is
 
     eq tryEvalOne*(M, TB, T, empty, NS') =  if NS' == empty then 
                                                 < unstatisfied | empty > 
-                                            else < unknown | simplifyNodes(NS') > fi .
+                                            else 
+                                                < unknown | simplifyNodes(NS') > 
+                                            fi .
 
     --- check whether M, T |= NS
-    op tryEval : Module Tableau Term NodeSet -> Result4TryEval .
+    op tryEval  : Module Tableau Term NodeSet         -> Result4TryEval .
     op tryEval* : Module Tableau Term NodeSet NodeSet -> Result4TryEval .
     eq tryEval(M, TB, T, NS) = tryEval*(M, TB, T, NS, empty) .
     ceq tryEval*(M, TB, T, (Nd, NS), NS') = if RT == unstatisfied then
@@ -184,14 +186,16 @@ fmod DCA2MC-CHECKER is
     if < RT | NS'' > := tryEvalOne(M, TB, T, Nd) .
     eq tryEval*(M, TB, T, empty, NS') = if NS' == empty then 
                                             < unstatisfied | empty > 
-                                        else < unknown | simplifyNodes(NS') > fi .
+                                        else 
+                                            < unknown | simplifyNodes(NS') > 
+                                        fi .
 
     ********************************************************
     *** FOR FINAL LAYER                                  ***
     ********************************************************
-    op lastLayerCheck : Module SFSet -> Bool .
+    op lastLayerCheck        : Module SFSet        -> Bool .
     op lastLayerCheckNodeSet : Module Term NodeSet -> Bool .
-    op lastLayerCheckNode : Module Term Node -> Bool .
+    op lastLayerCheckNode    : Module Term Node    -> Bool .
 
     ceq lastLayerCheck(M, ({T : NS}, SFS)) = if B then 
                                                 lastLayerCheck(M, SFS)
@@ -204,7 +208,7 @@ fmod DCA2MC-CHECKER is
     ceq lastLayerCheckNodeSet(M, T, (Nd, NS)) = if B then 
                                                     true 
                                                 else 
-                                                    lastLayerCheckNodeSet(M, T, NS) 
+                                                    lastLayerCheckNodeSet(M, T, NS)
                                                 fi 
     if B := lastLayerCheckNode(M, T, Nd) .
     eq lastLayerCheckNodeSet(M, T, empty) = false .

@@ -1,0 +1,21 @@
+load ../debug.maude
+load ../full-maude-lite.maude
+load ../specs/tas.maude
+load ../utils.maude
+load ../database.maude
+load ../checker.maude
+
+red in DCA2MC-CHECKER : tryEvalOne(
+    upModule('TAS-CHECK, false),
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    'init.Config,
+    getInitNode(buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]))
+) .
+
+red layerCheck(
+    upModule('TAS-CHECK, false),
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    'VAR:Config,
+    ({('init.Config) : getInitNode(buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]))}),
+    2
+) .

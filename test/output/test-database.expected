@@ -1,0 +1,256 @@
+==========================================
+reduce in FORMULA : len('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]) .
+result NzNat: 8
+==========================================
+reduce in FORMULA : len('~_['inWs1.Prop]) .
+result NzNat: 2
+==========================================
+reduce in FORMULA : len('O_['inWs1.Prop]) .
+result NzNat: 2
+==========================================
+reduce in FORMULA : len('inWs1.Prop) .
+result NzNat: 1
+==========================================
+reduce in TABLEAU : buildTableau('_/\_['inWs1.Prop, 'inCs1.Prop]) .
+result Tableau: {cnt: 2, node2id: {'_/\_['inWs1.Prop, 'inCs1.Prop]} |-> 0, {
+    'inCs1.Prop
+| 'inWs1.Prop} |-> 1, id2node: 0 |-> {node: {'_/\_['inWs1.Prop, 'inCs1.Prop]},
+    type: ordinary, childs: 1}, 1 |-> {node: {'inCs1.Prop
+| 'inWs1.Prop}, type: open, childs: empty}}
+==========================================
+reduce in TABLEAU : buildTableau('_\/_['inWs1.Prop, 'inCs1.Prop]) .
+result Tableau: {cnt: 3, node2id: {'inCs1.Prop} |-> 2, {'inWs1.Prop} |-> 1, {
+    '_\/_['inWs1.Prop, 'inCs1.Prop]} |-> 0, id2node: 0 |-> {node: {'_\/_[
+    'inWs1.Prop, 'inCs1.Prop]}, type: ordinary, childs: 1, 2}, 1 |-> {node: {
+    'inWs1.Prop}, type: open, childs: empty}, 2 |-> {node: {'inCs1.Prop}, type:
+    open, childs: empty}}
+==========================================
+reduce in TABLEAU : buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]) .
+result Tableau: {cnt: 3, node2id: {'inFs1.Prop} |-> 1, {'O_['_U_[
+    'True.TrueFormula, 'inFs1.Prop]]} |-> 2, {'_U_['True.TrueFormula,
+    'inFs1.Prop]} |-> 0, id2node: 0 |-> {node: {'_U_['True.TrueFormula,
+    'inFs1.Prop]}, type: ordinary, childs: 1, 2}, 1 |-> {node: {'inFs1.Prop},
+    type: open, childs: empty}, 2 |-> {node: {'O_['_U_['True.TrueFormula,
+    'inFs1.Prop]]}, type: state, childs: 0}}
+==========================================
+reduce in TABLEAU : leaves(buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]),
+    getInitNode(buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]))) .
+result NeNodeSet: {'inFs1.Prop}, {'O_['_U_['True.TrueFormula, 'inFs1.Prop]]}
+==========================================
+reduce in TABLEAU : leaves*(buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]),
+    getInitNode(buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]))) .
+result NeNatSet: 1, 2
+==========================================
+reduce in TABLEAU : leavesByIds(buildTableau('_U_['True.TrueFormula,
+    'inFs1.Prop]), 0) .
+result NeNodeSet: {'inFs1.Prop}, {'O_['_U_['True.TrueFormula, 'inFs1.Prop]]}
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_U_['True.TrueFormula,
+    'inFs1.Prop]), 0) .
+result NeNatSet: 1, 2
+==========================================
+reduce in TABLEAU : leavesByIds(buildTableau('_U_['True.TrueFormula,
+    'inFs1.Prop]), 1) .
+result Node: {'inFs1.Prop}
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_U_['True.TrueFormula,
+    'inFs1.Prop]), 1) .
+result NzNat: 1
+==========================================
+reduce in TABLEAU : leavesByIds(buildTableau('_U_['True.TrueFormula,
+    'inFs1.Prop]), 2) .
+result Node: {'O_['_U_['True.TrueFormula, 'inFs1.Prop]]}
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_U_['True.TrueFormula,
+    'inFs1.Prop]), 2) .
+result NzNat: 2
+==========================================
+reduce in TABLEAU : buildTableau('_R_['False.FalseFormula, '_\/_['~_[
+    'inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]) .
+result Tableau: {cnt: 17, node2id: {'False.FalseFormula} |-> 1, {'_R_[
+    'False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,
+    'inCs1.Prop]]]} |-> 0, {'inCs1.Prop
+| ('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])} |-> 5, {'inCs1.Prop
+| ('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,
+    'inCs1.Prop]]])} |-> 8, {('O_['_R_['False.FalseFormula, '_\/_['~_[
+    'inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]])
+| ('O_['_U_['True.TrueFormula, 'inCs1.Prop]])} |-> 6, {('O_['_R_[
+    'False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,
+    'inCs1.Prop]]]])
+| ('_U_['True.TrueFormula, 'inCs1.Prop])} |-> 4, {('O_['_R_[
+    'False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,
+    'inCs1.Prop]]]])
+| ('_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]])} |-> 2, {(
+    'O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])
+| ('~_['inWs1.Prop])} |-> 3, {('O_['_U_['True.TrueFormula, 'inCs1.Prop]])
+| ('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,
+    'inCs1.Prop]]])} |-> 9, {('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop],
+    '_U_['True.TrueFormula, 'inCs1.Prop]]])
+| ('_U_['True.TrueFormula, 'inCs1.Prop])} |-> 7, {'inCs1.Prop
+| ('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])
+| ('O_['_U_['True.TrueFormula, 'inCs1.Prop]])} |-> 14, {'inCs1.Prop
+| ('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])
+| ('_U_['True.TrueFormula, 'inCs1.Prop])} |-> 13, {'inCs1.Prop
+| ('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])
+| ('_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]])} |-> 10, {
+    'inCs1.Prop
+| ('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])
+| ('~_['inWs1.Prop])} |-> 12, {('O_['_R_['False.FalseFormula, '_\/_['~_[
+    'inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]])
+| ('O_['_U_['True.TrueFormula, 'inCs1.Prop]])
+| ('_U_['True.TrueFormula, 'inCs1.Prop])} |-> 16, {('O_['_R_[
+    'False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,
+    'inCs1.Prop]]]])
+| ('O_['_U_['True.TrueFormula, 'inCs1.Prop]])
+| ('_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]])} |-> 11, {(
+    'O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])
+| ('O_['_U_['True.TrueFormula, 'inCs1.Prop]])
+| ('~_['inWs1.Prop])} |-> 15, id2node: 0 |-> {node: {'_R_['False.FalseFormula,
+    '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]}, type:
+    ordinary, childs: 1, 2}, 1 |-> {node: {'False.FalseFormula}, type: closed,
+    childs: empty}, 2 |-> {node: {('O_['_R_['False.FalseFormula, '_\/_['~_[
+    'inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]])
+| ('_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]])}, type:
+    ordinary, childs: 3, 4}, 3 |-> {node: {('O_['_R_['False.FalseFormula,
+    '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]])
+| ('~_['inWs1.Prop])}, type: state, childs: 0}, 4 |-> {node: {('O_['_R_[
+    'False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,
+    'inCs1.Prop]]]])
+| ('_U_['True.TrueFormula, 'inCs1.Prop])}, type: ordinary, childs: 5, 6}, 5 |->
+    {node: {'inCs1.Prop
+| ('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])}, type: state, childs: 0}, 6 |-> {node:
+    {('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])
+| ('O_['_U_['True.TrueFormula, 'inCs1.Prop]])}, type: state, childs: 7}, 7 |->
+    {node: {('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]])
+| ('_U_['True.TrueFormula, 'inCs1.Prop])}, type: ordinary, childs: 8, 9}, 8 |->
+    {node: {'inCs1.Prop
+| ('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,
+    'inCs1.Prop]]])}, type: ordinary, childs: 1, 10}, 9 |-> {node: {('O_['_U_[
+    'True.TrueFormula, 'inCs1.Prop]])
+| ('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,
+    'inCs1.Prop]]])}, type: ordinary, childs: 1, 11}, 10 |-> {node: {
+    'inCs1.Prop
+| ('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])
+| ('_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]])}, type:
+    ordinary, childs: 12, 13}, 11 |-> {node: {('O_['_R_['False.FalseFormula,
+    '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]])
+| ('O_['_U_['True.TrueFormula, 'inCs1.Prop]])
+| ('_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]])}, type:
+    ordinary, childs: 15, 16}, 12 |-> {node: {'inCs1.Prop
+| ('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])
+| ('~_['inWs1.Prop])}, type: state, childs: 0}, 13 |-> {node: {'inCs1.Prop
+| ('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])
+| ('_U_['True.TrueFormula, 'inCs1.Prop])}, type: ordinary, childs: 5, 14}, 14
+    |-> {node: {'inCs1.Prop
+| ('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])
+| ('O_['_U_['True.TrueFormula, 'inCs1.Prop]])}, type: state, childs: 7}, 15 |->
+    {node: {('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])
+| ('O_['_U_['True.TrueFormula, 'inCs1.Prop]])
+| ('~_['inWs1.Prop])}, type: state, childs: 7}, 16 |-> {node: {('O_['_R_[
+    'False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,
+    'inCs1.Prop]]]])
+| ('O_['_U_['True.TrueFormula, 'inCs1.Prop]])
+| ('_U_['True.TrueFormula, 'inCs1.Prop])}, type: ordinary, childs: 6, 14}}
+==========================================
+reduce in TABLEAU : leaves(buildTableau('_R_['False.FalseFormula, '_\/_['~_[
+    'inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), getInitNode(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]))) .
+result NeNodeSet: {'False.FalseFormula}, {'inCs1.Prop
+| ('O_['_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]])}, {('O_['_R_['False.FalseFormula,
+    '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]])
+| ('O_['_U_['True.TrueFormula, 'inCs1.Prop]])}, {('O_['_R_['False.FalseFormula,
+    '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]])
+| ('~_['inWs1.Prop])}
+==========================================
+reduce in TABLEAU : leaves*(buildTableau('_R_['False.FalseFormula, '_\/_['~_[
+    'inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), getInitNode(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]))) .
+result NeNatSet: 1, 3, 5, 6
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 0) .
+result NeNatSet: 1, 3, 5, 6
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 1) .
+result NzNat: 1
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 2) .
+result NeNatSet: 3, 5, 6
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 3) .
+result NzNat: 3
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 4) .
+result NeNatSet: 5, 6
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 5) .
+result NzNat: 5
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 6) .
+result NzNat: 6
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 7) .
+result NeNatSet: 1, 5, 6, 12, 14, 15
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 8) .
+result NeNatSet: 1, 5, 12, 14
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 9) .
+result NeNatSet: 1, 6, 14, 15
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 10) .
+result NeNatSet: 5, 12, 14
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 11) .
+result NeNatSet: 6, 14, 15
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 12) .
+result NzNat: 12
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 13) .
+result NeNatSet: 5, 14
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 14) .
+result NzNat: 14
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 15) .
+result NzNat: 15
+==========================================
+reduce in TABLEAU : leavesByIds*(buildTableau('_R_['False.FalseFormula, '_\/_[
+    '~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]), 16) .
+result NeNatSet: 6, 14
+Bye.

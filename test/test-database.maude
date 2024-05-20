@@ -3,165 +3,145 @@ load ../full-maude-lite.maude
 load ../specs/tas.maude
 load ../utils.maude
 load ../database.maude
+load ../checker.maude
 
---- red in FORMULA : len('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]) .
---- red in FORMULA : len('~_['inWs1.Prop]) .
---- red in FORMULA : len('O_['inWs1.Prop]) .
---- red in FORMULA : len('inWs1.Prop) .
---- red in TABLEAU : buildTableau('_/\_['inWs1.Prop, 'inCs1.Prop]) .
---- red in TABLEAU : buildTableau('_\/_['inWs1.Prop, 'inCs1.Prop]) .
---- red in TABLEAU : buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]) .
---- red in TABLEAU : leaves*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     getInitNode(
----         buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]])
----     )
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     0
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     1
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     2
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     3
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     4
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     5
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     6
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     7
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     8
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     9
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     10
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     11
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     12
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     13
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     14
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     15
---- ) .
-
---- red in TABLEAU : leavesByIds*(
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     16
---- ) .
-
---- red tryEvalOne(
----     upModule('TAS-CHECK, false),
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     'init.Config,
----     getInitNode(buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]))
---- ) .
-
---- red layerCheck(
----     upModule('TAS-CHECK, false),
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     'VAR:Config,
----     ({('init.Config) : getInitNode(buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]))}),
----     2
---- ) .
-
+red in FORMULA : len('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]) .
+red in FORMULA : len('~_['inWs1.Prop]) .
+red in FORMULA : len('O_['inWs1.Prop]) .
+red in FORMULA : len('inWs1.Prop) .
+red in TABLEAU : buildTableau('_/\_['inWs1.Prop, 'inCs1.Prop]) .
+red in TABLEAU : buildTableau('_\/_['inWs1.Prop, 'inCs1.Prop]) .
 red buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]) .
+red leaves(
+    buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]),
+    getInitNode(buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]))
+) .
+red leaves*(
+    buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]),
+    getInitNode(buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]))
+) .
+red leavesByIds(
+    buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]),
+    0
+) .
+red leavesByIds*(
+    buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]),
+    0
+) .
+red leavesByIds(
+    buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]),
+    1
+) .
+red leavesByIds*(
+    buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]),
+    1
+) .
+red leavesByIds(
+    buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]),
+    2
+) .
+red leavesByIds*(
+    buildTableau('_U_['True.TrueFormula, 'inFs1.Prop]),
+    2
+) .
 
-red in DATABASE : 1 + 1 .
+red in TABLEAU : buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]) .
 
-eof
+red in TABLEAU : leaves(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    getInitNode(
+        buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]])
+    )
+) .
 
---- red layerCheck**(
----     upModule('TAS-CHECK, false),
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     'VAR:Config,
----     ({('init.Config) : getInitNode(buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]))}),
----     2
---- ) .
+red in TABLEAU : leaves*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    getInitNode(
+        buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]])
+    )
+) .
 
---- red layerCheckPath(
----     upModule('TAS-CHECK, false),
----     buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
----     ('init.Config, '`{_`}['__['queue:_['p1.Pid], 'cnt:_['s_^2[
----     '0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ss.Loc]]], '`{_`}['__['queue:_['p1.Pid], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_[
----     'p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ss.Loc]]]),
----     getInitNode(buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]))
---- ) .
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    0
+) .
 
-< 
-    (unknown).ResultType | 
-    
-{
-    '`{_`}['__['locked:_['false.Bool], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc],'pc`[_`]:_['p2.Pid, 'ws.Loc]]] : 
-    {'_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]}
-}, 
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    1
+) .
 
-{
-    '`{_`}['__['locked:_['false.Bool], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]] : 
-    {('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]) | ('_U_['True.TrueFormula, 'inCs1.Prop])}
-}, 
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    2
+) .
 
-{
-    '`{_`}['__['locked:_['true.Bool], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'cs.Loc],'pc`[_`]:_['p2.Pid, 'ss.Loc]]] : 
-    {('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]) | ('_U_['True.TrueFormula, 'inCs1.Prop])}
-}, 
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    3
+) .
 
-{
-    '`{_`}['__['locked:_['true.Bool], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ss.Loc],'pc`[_`]:_['p2.Pid, 'cs.Loc]]] : 
-    {'_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]}
-} 
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    4
+) .
 
->
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    5
+) .
+
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    6
+) .
+
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    7
+) .
+
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    8
+) .
+
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    9
+) .
+
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    10
+) .
+
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    11
+) .
+
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    12
+) .
+
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    13
+) .
+
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    14
+) .
+
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    15
+) .
+
+red in TABLEAU : leavesByIds*(
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,'inCs1.Prop]]]),
+    16
+) .

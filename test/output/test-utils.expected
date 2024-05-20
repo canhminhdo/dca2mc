@@ -1,0 +1,63 @@
+==========================================
+reduce in DCA2MC-UTILS : extractType(upModule('TAS-CHECK, true), 'init) .
+result Sort: 'Config
+==========================================
+reduce in DCA2MC-UTILS : extractType(upModule('TAS-CHECK, true), 'lofree) .
+result Sort: 'Formula
+==========================================
+reduce in DCA2MC-UTILS : isModule('TAS-FAKE) .
+result Bool: false
+==========================================
+reduce in DCA2MC-UTILS : isModule('TAS-CHECK) .
+result Bool: true
+==========================================
+reduce in DCA2MC-UTILS : buildTerm('init, extractType(upModule('TAS-CHECK,
+    true), 'init)) .
+result Constant: 'init.Config
+==========================================
+reduce in DCA2MC-UTILS : buildTerm('lofree, extractType(upModule('TAS-CHECK,
+    true), 'lofree)) .
+result Constant: 'lofree.Formula
+==========================================
+reduce in DCA2MC-UTILS : getAllSuccessors(upModule('TAS-CHECK, false),
+    'init.Config, 'X:Config) .
+result TermSet: ('`{_`}['__['locked:_['false.Bool], 'cnt:_['s_^2['0.Zero]],
+    'pc`[_`]:_['p1.Pid, 'ss.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]])
+| ('`{_`}['__['locked:_['false.Bool], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_[
+    'p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ss.Loc]]])
+==========================================
+reduce in DCA2MC-UTILS : genSeqs(upModule('TAS-CHECK, false), 'init.Config,
+    'X:Config, 1) .
+result NeTermListSet: ('init.Config, '`{_`}['__['locked:_['false.Bool], 'cnt:_[
+    's_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ss.Loc], 'pc`[_`]:_['p2.Pid,
+    'ws.Loc]]]) || ('init.Config, '`{_`}['__['locked:_['false.Bool], 'cnt:_[
+    's_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid,
+    'ss.Loc]]])
+==========================================
+reduce in DCA2MC-UTILS : checkSat(upModule('TAS-CHECK, false), 'init.Config,
+    'inWs1.Prop) .
+result Bool: false
+==========================================
+reduce in DCA2MC-UTILS : checkSat(upModule('TAS-CHECK, false), 'init.Config,
+    '~_['inWs1.Prop]) .
+result Bool: true
+==========================================
+reduce in DCA2MC-UTILS : genSeqs(upModule('TAS-CHECK, false), 'init.Config,
+    'X:Config, 2) .
+result NeTermListSet: ('init.Config, '`{_`}['__['locked:_['false.Bool], 'cnt:_[
+    's_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ss.Loc], 'pc`[_`]:_['p2.Pid,
+    'ws.Loc]]], '`{_`}['__['locked:_['false.Bool], 'cnt:_['s_^2['0.Zero]],
+    'pc`[_`]:_['p1.Pid, 'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]]) || (
+    'init.Config, '`{_`}['__['locked:_['false.Bool], 'cnt:_['s_^2['0.Zero]],
+    'pc`[_`]:_['p1.Pid, 'ss.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]], '`{_`}['__[
+    'locked:_['true.Bool], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid,
+    'ss.Loc], 'pc`[_`]:_['p2.Pid, 'cs.Loc]]]) || ('init.Config, '`{_`}['__[
+    'locked:_['false.Bool], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid,
+    'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ss.Loc]]], '`{_`}['__['locked:_[
+    'false.Bool], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc],
+    'pc`[_`]:_['p2.Pid, 'ws.Loc]]]) || ('init.Config, '`{_`}['__['locked:_[
+    'false.Bool], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc],
+    'pc`[_`]:_['p2.Pid, 'ss.Loc]]], '`{_`}['__['locked:_['true.Bool], 'cnt:_[
+    's_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'cs.Loc], 'pc`[_`]:_['p2.Pid,
+    'ss.Loc]]])
+Bye.

@@ -1,0 +1,30 @@
+==========================================
+reduce in DCA2MC-CHECKER : tryEvalOne(upModule('TAS-CHECK, false),
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]), 'init.Config, getInitNode(buildTableau(
+    '_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula,
+    'inCs1.Prop]]]))) .
+result Result4TryEval: < (unknown).ResultType | {'_R_['False.FalseFormula,
+    '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]} >
+==========================================
+reduce in DCA2MC-CHECKER : layerCheck(upModule('TAS-CHECK, false),
+    buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]), 'VAR:Config, {'init.Config :
+    getInitNode(buildTableau('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop],
+    '_U_['True.TrueFormula, 'inCs1.Prop]]]))}, 2) .
+result Result4Checking: < (unknown).ResultType | {'`{_`}['__['locked:_[
+    'false.Bool], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ws.Loc],
+    'pc`[_`]:_['p2.Pid, 'ws.Loc]]] : {'_R_['False.FalseFormula, '_\/_['~_[
+    'inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]]}}, {'`{_`}['__[
+    'locked:_['false.Bool], 'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid,
+    'ws.Loc], 'pc`[_`]:_['p2.Pid, 'ws.Loc]]] : {('_R_['False.FalseFormula,
+    '_\/_['~_['inWs1.Prop], '_U_['True.TrueFormula, 'inCs1.Prop]]])
+| ('_U_['True.TrueFormula, 'inCs1.Prop])}}, {'`{_`}['__['locked:_['true.Bool],
+    'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'cs.Loc], 'pc`[_`]:_['p2.Pid,
+    'ss.Loc]]] : {('_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]])
+| ('_U_['True.TrueFormula, 'inCs1.Prop])}}, {'`{_`}['__['locked:_['true.Bool],
+    'cnt:_['s_^2['0.Zero]], 'pc`[_`]:_['p1.Pid, 'ss.Loc], 'pc`[_`]:_['p2.Pid,
+    'cs.Loc]]] : {'_R_['False.FalseFormula, '_\/_['~_['inWs1.Prop], '_U_[
+    'True.TrueFormula, 'inCs1.Prop]]]}} >
+Bye.

@@ -75,5 +75,3 @@ mod DCA2MC-IO is
     =>  < O : X@Class | state: quit, input: empty > .
     --- =>  < O : X@Class | state: quit, input: empty, Atts > .
 endm
-
-

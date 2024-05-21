@@ -84,8 +84,8 @@ fmod DCA2MC-CHECKER is
     eq buildSFS(T | TS, NS) = { T : NS }, buildSFS(TS, NS) .
     eq buildSFS(emptyTermSet, NS) = emptySFS .
 
-    --- op layerCheck : Module Tableau Term SFSet Nat -> Result4Checking .
-    --- op layerCheck* : Module Tableau Term SFSet Nat SFSet -> Result4Checking .
+    --- op layerCheck   : Module Tableau Term SFSet Nat          -> Result4Checking .
+    --- op layerCheck*  : Module Tableau Term SFSet Nat SFSet    -> Result4Checking .
     --- op layerCheck** : Module Tableau Term State&Formulas Nat -> Result4Checking .
     --- eq layerCheck(M, TB, VAR, SFS, N) = layerCheck*(M, TB, VAR, SFS, N, emptySFS) .
     --- ceq layerCheck*(M, TB, VAR, (SF, SFS), N, SFS') =   if RT == unstatisfied then

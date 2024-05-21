@@ -155,7 +155,7 @@ fmod DCA2MC-CHECKER is
                                                         if Ty == open then
                                                             < satisfied | empty >
                                                         else
-                                                            tryEvalOne*(M, TB, T, NS, union(next(Nd), NS'))
+                                                            tryEvalOne*(M, TB, T, NS, (next(Nd), NS'))
                                                         fi
                                                     else
                                                         tryEvalOne*(M, TB, T, NS, NS')

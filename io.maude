@@ -25,9 +25,9 @@ mod DCA2MC-IO is
     pr DATABASE .
 
     vars Atts : AttributeSet .
-    vars S S' OUT : String .
     vars RP? : ResultPair? .
     vars X@Class : Cid .
+    vars S : String .
     vars O : Oid .
 
     sort State .

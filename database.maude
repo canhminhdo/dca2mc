@@ -40,12 +40,12 @@ fmod NODE is
     
     sorts Node Entry NodeType .
 
-    vars TS TS' : TermSet .
-    vars T T1 T2 : Term .
     vars Ty : NodeType .
     vars Ct : Constant .
+    vars TS : TermSet .
     vars NS : NatSet .
     vars Nd : Node .
+    vars T : Term .
     vars ID : Nat .
 
     ops empty closed open state ordinary : -> NodeType [ctor] .
@@ -57,7 +57,7 @@ fmod NODE is
     ceq { 'True.TrueFormula | TS } = { TS } if TS =/= emptyTermSet .
     eq { T | ('~_[T]) | TS } = { 'False.FalseFormula } .
 
-    --- data structure for an entry reprenting a node
+    --- data structure for an entry representing a node
     op {node:_, type:_, childs:_} : Node NodeType NatSet -> Entry .
     
     --- get information from an entry
@@ -70,7 +70,7 @@ fmod NODE is
     op getChilds : Entry -> NatSet .
     eq getChilds({node: Nd, type: Ty, childs: NS}) = NS .
 
-    --- add a node id as a child of a node reprenting by an entry
+    --- add a node id as a child of a node representing by an entry
     op addLeaf : Entry Nat -> Entry .
     eq addLeaf({node: Nd, type: Ty, childs: NS}, ID) = {node: Nd, type: Ty, childs: insert(ID, NS)} .
 
@@ -170,9 +170,9 @@ fmod TABLEAU is
     vars TB TB' TB'' : Tableau .
     vars NS NS' NS'' : NodeSet .
     vars N2ID N2ID' : NodeToId .
-    vars N ID ID' ID'' : Nat .
     vars Nd Nd' Nd'' : Node .
     vars NtS NtS' : NatSet .
+    vars N ID ID' : Nat .
     vars T T1 T2 : Term .
     vars Ty : NodeType .
     vars TS : TermSet .
@@ -313,7 +313,7 @@ fmod TABLEAU is
     /\ TB'' := addNode(Nd, Nd'', TB')
     /\ NS' := (if size(TB) == size(TB') then empty else Nd' fi)
     /\ NS'' := (if size(TB') == size(TB'') then empty else Nd'' fi) .
-    eq handleBetaF(Nd, NS, TB) = buildTableau*(Nd, NS, TB) [owise] . --- never reached
+    eq handleNextF(Nd, NS, TB) = buildTableau*(Nd, NS, TB) [owise print "Never reached"] .
 
     --- handle state node
     op handleStateNode : Node NodeSet Tableau -> Tableau .
@@ -358,11 +358,10 @@ endv
 fmod STATE-FORMULAS-SET is
     pr SET{SF} * (sort NeSet{SF} to NeSFSet, sort Set{SF} to SFSet, op empty : -> Set{SF} to emptySFS) .
     
-    vars TS TS1 TS2 : TermSet .
+    vars TS1 TS2 : TermSet .
     vars NS NS' : NodeSet .
     vars SFS : SFSet .
     vars T T' : Term .
-    vars Nd : Node .
 
     --- simplify a set of states & formulas
     op simplifySFS : SFSet -> SFSet .
@@ -480,14 +479,14 @@ fmod DATABASE-EXT is
     pr DATABASE .
     pr MAP{Nat,Nat} * ( sort Map{Nat,Nat} to NatToNat ) .
     
+    vars TS TS' : TermSet .
     vars N2N : NatToNat .
     vars NL : NatList .
-    vars N N' : Nat .
-    vars SFS : SFSet .
-    vars T : Term .
-    vars TS TS' : TermSet .
     vars NS : NodeSet .
+    vars SFS : SFSet .
+    vars N N' : Nat .
     vars M : Module .
+    vars T : Term .
 
     --- for debugging
     op analyze  : SFSet          -> NatToNat .

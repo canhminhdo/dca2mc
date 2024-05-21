@@ -3,13 +3,12 @@ mod DCA2MC-HANDLING is
     pr DCA2MC-PARSING .
     pr DCA2MC-IO .
 
-    vars T T1 T2 T3 T4 T5 T' : Term .
-    vars ME ME' : ModuleExpression .
-    var Atts : AttributeSet .
+    vars Atts : AttributeSet .
     vars DB DB' : Database .
     vars Ty : ResultType .
-    var X@Class : Cid .
-    var QIL : QidList .
+    vars T T1 T2 : Term .
+    vars X@Class : Cid .
+    vars QIL : QidList .
     vars O : Oid .
     
     crl [initialize] :

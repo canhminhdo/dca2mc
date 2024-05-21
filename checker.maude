@@ -18,9 +18,9 @@ fmod DCA2MC-CHECKER is
     vars TB : Tableau .
     vars TS : TermSet .
     vars M : Module .
-    vars N D : Nat .
     vars Nd : Node .
     vars B : Bool .
+    vars N : Nat .
     
     ********************************************************
     *** FOR INTERMEDIATE LAYERS                          ***

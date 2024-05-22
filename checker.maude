@@ -106,7 +106,7 @@ fmod DCA2MC-CHECKER is
     --- ceq layerCheck**(M, TB, VAR, { T : NS }, N) = layerCheckPaths(M, TB, TLS, NS, emptySFS)
     --- if TLS := genSeqs(M, T, VAR, N) .
 
-    --- check all paths with NS
+    --- --- check all paths with NS
     --- op layerCheckPaths : Module Tableau TermListSet NodeSet SFSet -> Result4Checking .
     --- ceq layerCheckPaths(M, TB, TL || TLS, NS, SFS) = if RT == unstatisfied then
     ---                                                 < unstatisfied | emptySFS >

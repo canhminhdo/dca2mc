@@ -63,7 +63,7 @@ mod DCA2MC-PROCESSING is
         (atoms: TS),
         (depthList: nil),
         (currentDepth: 0),
-        (tableau: buildTableau(T4)),
+        (tableau: TB),
         (sfSet: ({T3 : getInitNode(TB)})),
         (result: unknown)
     } 

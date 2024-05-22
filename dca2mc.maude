@@ -23,6 +23,20 @@ mod DCA2MC is
 
     op run : -> Configuration [ctor] .
     eq run = <> < o : DCA2MC | initAtts > .
+
+    --- for debugging
+    vars SFS SFS' : SFSet .
+    vars NS NS' : NodeSet .
+    vars T T' : Term .
+
+    op check : SFSet SFSet -> Bool .
+    eq check(({T : NS}, SFS), ({T : NS'}, SFS')) = if NS == NS' then check(SFS, SFS') else false fi .
+    eq check(emptySFS, emptySFS) = true .
+    eq check(SFS, SFS') = false [owise] .
+
+    op analyzer : SFSet -> Bool .
+    eq analyzer(({T : NS}, {T : NS'}, SFS)) = true .
+    eq analyzer(SFS) = false [owise] .
 endm
 
 erew run .

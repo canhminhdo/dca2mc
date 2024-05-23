@@ -8,7 +8,7 @@ fmod DCA2MC-CHECKER is
     vars SFS SFS' SFS'' : SFSet .
     vars NS NS' NS'' : NodeSet .
     vars SF : State&Formulas .
-    vars TLS : TermListSet .
+    vars TLL : TermListList .
     vars RT : ResultType .
     vars N2ID : NodeToId .
     vars ID2N : IdToNode .
@@ -41,9 +41,9 @@ fmod DCA2MC-CHECKER is
                                                 fi
                                             fi
     if < RT | SFS' > := layerCheck(M, TB, VAR, SFS, N) .
-    eq collect(M, TB, VAR, SFS, nil) = < unknown | SFS > .
+    eq collect(M, TB, VAR, SFS, nil) = < unknown | simplifySFS*(SFS) > .
     
-    --- layer check for a depth
+    --- layer check for a depth with BFS
     op layerCheck   : Module Tableau Term SFSet Nat         -> Result4Checking .
     op layerCheck*  : Module Tableau Term SFSet Nat SFSet   -> Result4Checking .
     op layerCheck** : Module Tableau Term State&Formulas    -> Result4Checking .
@@ -74,16 +74,16 @@ fmod DCA2MC-CHECKER is
                                                     if RT == satisfied then
                                                         < satisfied | emptySFS >
                                                     else
-                                                        < unknown | buildSFS(TS, NS') >
+                                                        < unknown | buildSFS(getAllSuccessors(M, T, VAR), NS') >
                                                     fi
                                                 fi
-    if < RT | NS' > := tryEval(M, TB, T, NS)
-    /\ TS := getAllSuccessors(M, T, VAR) .
+    if < RT | NS' > := tryEval(M, TB, T, NS) .
 
     op buildSFS : TermSet NodeSet -> SFSet .
     eq buildSFS(T | TS, NS) = { T : NS }, buildSFS(TS, NS) .
     eq buildSFS(emptyTermSet, NS) = emptySFS .
 
+    --- layerCheck with all paths generated in advance
     --- op layerCheck   : Module Tableau Term SFSet Nat          -> Result4Checking .
     --- op layerCheck*  : Module Tableau Term SFSet Nat SFSet    -> Result4Checking .
     --- op layerCheck** : Module Tableau Term State&Formulas Nat -> Result4Checking .
@@ -103,22 +103,22 @@ fmod DCA2MC-CHECKER is
     ---                                                 else < unknown | SFS > fi .
 
     --- --- Nd is a set of formulas { T1 | T2 | ... }
-    --- ceq layerCheck**(M, TB, VAR, { T : NS }, N) = layerCheckPaths(M, TB, TLS, NS, emptySFS)
-    --- if TLS := genSeqs(M, T, VAR, N) .
+    --- ceq layerCheck**(M, TB, VAR, { T : NS }, N) = layerCheckPaths(M, TB, TLL, NS, emptySFS)
+    --- if TLL := genSeqs(M, T, VAR, N) .
 
     --- --- check all paths with NS
-    --- op layerCheckPaths : Module Tableau TermListSet NodeSet SFSet -> Result4Checking .
-    --- ceq layerCheckPaths(M, TB, TL || TLS, NS, SFS) = if RT == unstatisfied then
+    --- op layerCheckPaths : Module Tableau TermListList NodeSet SFSet -> Result4Checking .
+    --- ceq layerCheckPaths(M, TB, TL || TLL, NS, SFS) = if RT == unstatisfied then
     ---                                                 < unstatisfied | emptySFS >
     ---                                             else
     ---                                                 if RT == satisfied then
-    ---                                                     layerCheckPaths(M, TB, TLS, NS, SFS)
+    ---                                                     layerCheckPaths(M, TB, TLL, NS, SFS)
     ---                                                 else
-    ---                                                     layerCheckPaths(M, TB, TLS, NS, union(SFS', SFS))
+    ---                                                     layerCheckPaths(M, TB, TLL, NS, union(SFS', SFS))
     ---                                                 fi
     ---                                             fi
     --- if < RT | SFS' > := layerCheckPath(M, TB, TL, NS) .
-    --- eq layerCheckPaths(M, TB, emptyTLS, NS, SFS) =  if SFS == emptySFS then
+    --- eq layerCheckPaths(M, TB, nilTLL, NS, SFS) =  if SFS == emptySFS then
     ---                                                     < satisfied | emptySFS >
     ---                                                 else < unknown | SFS > fi .
 

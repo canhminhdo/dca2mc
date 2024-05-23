@@ -2,23 +2,19 @@ view TermList from TRIV to META-TERM is
     sort Elt to TermList .
 endv
 
-fmod TERM-LIST-SET is
+fmod TERM-LIST-LIST is
     pr META-LEVEL .
 
-    sorts NeTermListSet TermListSet .
-    subsort TermList < NeTermListSet < TermListSet .
+    sorts NeTermListList TermListList .
+    subsort TermList < NeTermListList < TermListList .
 
-    op emptyTLS : -> TermListSet [ctor] .
-    op _||_ : TermListSet   TermListSet -> TermListSet [ctor assoc comm id: emptyTLS] .
-    op _||_ : NeTermListSet TermListSet -> NeTermListSet [ctor ditto] .
-    
-    vars NeTLS : NeTermListSet .
-
-    eq NeTLS || NeTLS = NeTLS .
+    op nilTLL : -> TermListList [ctor] .
+    op _||_ : TermListList   TermListList -> TermListList [ctor assoc id: nilTLL] .
+    op _||_ : NeTermListList TermListList -> NeTermListList [ctor ditto] .
 endfm
 
 fmod DCA2MC-UTILS is
-    pr TERM-LIST-SET .
+    pr TERM-LIST-LIST .
     pr FM-TERMSET .
     pr EXT-BOOL .
 
@@ -28,7 +24,6 @@ fmod DCA2MC-UTILS is
     op unknown : -> Bool? [ctor] .
     eq not unknown = unknown .
 
-    vars TLS TLS' : TermListSet .
     vars RT : ResultTriple .
     vars OPDS : OpDeclSet .
     vars T T' VAR : Term .
@@ -81,9 +76,9 @@ fmod DCA2MC-UTILS is
     eq getVarTerm(Ty) = qid("VAR-" + string(Ty) + ":" + string(Ty)) .
 
     --- generate state sequences
-    op genSeqs   : Module Term Term Nat                  -> TermListSet .
-    op genSeqs*  : Module Term Term Nat TermList         -> TermListSet .
-    op genSeqs** : Module Term Term Nat TermList TermSet -> TermListSet .
+    op genSeqs   : Module Term Term Nat                  -> TermListList .
+    op genSeqs*  : Module Term Term Nat TermList         -> TermListList .
+    op genSeqs** : Module Term Term Nat TermList TermSet -> TermListList .
     
     eq genSeqs(M, T, VAR, N) = genSeqs*(M, T, VAR, N, T) .
     ceq genSeqs*(M, T, VAR, N, TL) = genSeqs**(M, T, VAR, N, TL, getAllSuccessors(M, T, VAR))
@@ -92,7 +87,7 @@ fmod DCA2MC-UTILS is
 
     --- precondition: N > 0
     eq genSeqs**(M, T, VAR, N, TL, (T' | TS)) = genSeqs*(M, T', VAR, sd(N, 1), (TL , T')) || genSeqs**(M, T, VAR, N, TL, TS) .
-    eq genSeqs**(M, T, VAR, N, TL, emptyTermSet) = emptyTLS .
+    eq genSeqs**(M, T, VAR, N, TL, emptyTermSet) = nilTLL .
 
     --- get all successors states
     op getAllSuccessors  : Module Term Term                   -> TermSet .

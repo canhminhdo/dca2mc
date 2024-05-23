@@ -9,9 +9,9 @@ fmod DCA2MC-BANNER is
         "\t\t All rights reserved. \n" +
         "\n Commands:" + 
         "\n     initialize[_,_,_] \t initlizes with the module, the inital state, and the formula for model checking as inputs" +
-        "\n     layerCheck __ \t generates states with a layer configuration __ (e.g., 2 2)" +
+        "\n     layerCheck _ \t generates states with a layer configuration _ (e.g., 2 2)" +
         "\n     lastCheck \t\t model checks for the final layer" +
-        "\n     check __ \t\t generates states with a layer configuration __ and model checks for the final layer" +
+        "\n     check _ \t\t generates states with a layer configuration _ and model checks for the final layer" +
         "\n     analyze \t\t shows the current state with some informatoin for debugging" +
         "\n     help \t\t shows the command instructions" +
         "\n     q \t\t\t exists the application\n\n" .

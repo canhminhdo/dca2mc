@@ -41,7 +41,7 @@ fmod DCA2MC-CHECKER is
                                                 fi
                                             fi
     if < RT | SFS' > := layerCheck(M, TB, VAR, SFS, N) .
-    eq collect(M, TB, VAR, SFS, nil) = < unknown | simplifySFS*(SFS) > .
+    eq collect(M, TB, VAR, SFS, nil) = < unknown | SFS > .
     
     --- layer check for a depth with BFS
     op layerCheck   : Module Tableau Term SFSet Nat         -> Result4Checking .

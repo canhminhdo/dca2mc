@@ -369,13 +369,6 @@ fmod STATE-FORMULAS-SET is
     = simplifySFS(({T : {TS1 | TS2}}, SFS)) .
     eq simplifySFS(({T : NS}, {T : (NS, NS')}, SFS)) = simplifySFS(({T : NS}, SFS)) .
     eq simplifySFS(SFS) = SFS [owise] .
-
-    --- simplify a set of states & formulas for the final layer only
-    op simplifySFS* : SFSet -> SFSet .
-    eq simplifySFS*(({T : {T' | TS1}}, {T : {T' | TS2}}, SFS))
-    = simplifySFS*(({T : {'True.TrueFormula | TS1}}, {T : {T' | TS2}}, SFS)) .
-    eq simplifySFS*(({T : {'True.TrueFormula}}, SFS)) = simplifySFS*(SFS) .
-    eq simplifySFS*(SFS) = SFS [owise] .
 endfm
 
 fmod DB-CONFIG is

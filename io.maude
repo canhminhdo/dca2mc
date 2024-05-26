@@ -8,13 +8,13 @@ fmod DCA2MC-BANNER is
         "\t\t Copyright(c) 2023, JAIST\n" +
         "\t\t All rights reserved. \n" +
         "\n Commands:" + 
-        "\n     initialize[_,_,_] \t initlizes with the module, the inital state, and the formula for model checking as inputs" +
-        "\n     layerCheck _ \t generates states with a layer configuration _ (e.g., 2 2)" +
+        "\n     initialize[_,_,_] \t initializes the application with a system module ID, an initial state, and an LT formula for model checking as inputs" +
+        "\n     layerCheck _ \t generates states and their formulas with a layer configuration _ (e.g., 2 2)" +
         "\n     lastCheck \t\t model checks for the final layer" +
-        "\n     check _ \t\t generates states with a layer configuration _ and model checks for the final layer" +
-        "\n     analyze \t\t shows the current state with some informatoin for debugging" +
+        "\n     check _ \t\t generates states and their formulas with a layer configuration _ and model checks for the final layer" +
+        "\n     analyze \t\t shows the current state with some information from the application for debugging" +
         "\n     help \t\t shows the command instructions" +
-        "\n     q \t\t\t exists the application\n\n" .
+        "\n     q \t\t\t quits the application\n\n" .
 endfm
 
 mod DCA2MC-IO is

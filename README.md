@@ -33,13 +33,13 @@ maude dca2mc.maude
 ```
 We first load the formal specification of the TAS protocol in Maude and then load our support tool via the `dca2mc.maude` file.
 
-**Step 2:** Initialize the application to model check that Qlock enjoys a desired property.
+**Step 2:** Initialize the application to model check that TAS enjoys a desired property.
 
 ```
-initialize['QLOCK-CHECK, init, lofree]
+initialize[TAS-CHECK, init, lofree]
 ```
 
-where `'QLOCK-CHECK` is the system module ID, `init` is the initial state, and `lofree` is the desired property.
+where `TAS-CHECK` is the system module ID, `init` is the initial state, and `lofree` is the desired property.
 
 **Step 3:** Conduct model checking experiments for intermediate layers.
 
@@ -54,7 +54,7 @@ where `2 2` is the layer configuration denoting the first and second layer depth
 ```
 lastCheck
 ```
-This command will return `true` if Qlock enjoys the desired property; otherwise, `false` is returned.
+This command will return `true` if TAS enjoys the desired property; otherwise, `false` is returned.
 
 **Step 5:** Quit the application.
 

@@ -81,8 +81,10 @@ fmod DCA2MC-UTILS is
     op genSeqs** : Module Term Term Nat TermList TermSet -> TermListList .
     
     eq genSeqs(M, T, VAR, N) = genSeqs*(M, T, VAR, N, T) .
-    ceq genSeqs*(M, T, VAR, N, TL) = genSeqs**(M, T, VAR, N, TL, getAllSuccessors(M, T, VAR))
-    if N > 0 .
+    ceq genSeqs*(M, T, VAR, N, TL) = if TS == emptyTermSet then TL
+                                     else genSeqs**(M, T, VAR, N, TL, TS) fi
+    if N > 0
+    /\ TS := getAllSuccessors(M, T, VAR) .
     eq genSeqs*(M, T, VAR, 0, TL) = TL .
 
     --- precondition: N > 0

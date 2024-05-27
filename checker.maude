@@ -58,7 +58,7 @@ fmod DCA2MC-CHECKER is
                                                             if RT == satisfied then
                                                                 layerCheck*(M, TB, VAR, SFS, N, SFS')
                                                             else
-                                                                layerCheck*(M, TB, VAR, SFS, N, union(SFS', SFS''))
+                                                                layerCheck*(M, TB, VAR, SFS, N, (SFS', SFS''))
                                                             fi
                                                         fi
     if < RT | SFS'' > := layerCheck**(M, TB, VAR, SF) .
@@ -74,10 +74,15 @@ fmod DCA2MC-CHECKER is
                                                     if RT == satisfied then
                                                         < satisfied | emptySFS >
                                                     else
-                                                        < unknown | buildSFS(getAllSuccessors(M, T, VAR), NS') >
+                                                        if TS == emptyTermSet then
+                                                            < unstatisfied | emptySFS >
+                                                        else
+                                                            < unknown | buildSFS(TS, NS') >
+                                                        fi
                                                     fi
                                                 fi
-    if < RT | NS' > := tryEval(M, TB, T, NS) .
+    if < RT | NS' > := tryEval(M, TB, T, NS)
+    /\ TS := getAllSuccessors(M, T, VAR) .
 
     op buildSFS : TermSet NodeSet -> SFSet .
     eq buildSFS(T | TS, NS) = { T : NS }, buildSFS(TS, NS) .
@@ -94,7 +99,7 @@ fmod DCA2MC-CHECKER is
     ---                                                         if RT == satisfied then
     ---                                                             layerCheck*(M, TB, VAR, SFS, N, SFS')
     ---                                                         else
-    ---                                                             layerCheck*(M, TB, VAR, SFS, N, union(SFS', SFS'')) 
+    ---                                                             layerCheck*(M, TB, VAR, SFS, N, (SFS', SFS'')) 
     ---                                                         fi
     ---                                                     fi
     --- if < RT | SFS'' > := layerCheck**(M, TB, VAR, SF, N) .
@@ -114,7 +119,7 @@ fmod DCA2MC-CHECKER is
     ---                                                 if RT == satisfied then
     ---                                                     layerCheckPaths(M, TB, TLL, NS, SFS)
     ---                                                 else
-    ---                                                     layerCheckPaths(M, TB, TLL, NS, union(SFS', SFS))
+    ---                                                     layerCheckPaths(M, TB, TLL, NS, (SFS', SFS))
     ---                                                 fi
     ---                                             fi
     --- if < RT | SFS' > := layerCheckPath(M, TB, TL, NS) .
@@ -180,7 +185,7 @@ fmod DCA2MC-CHECKER is
                                                 if RT == satisfied then
                                                     < satisfied | empty >
                                                 else
-                                                    tryEval*(M, TB, T, NS, union(NS'', NS'))
+                                                    tryEval*(M, TB, T, NS, (NS'', NS'))
                                                 fi
                                             fi
     if < RT | NS'' > := tryEvalOne(M, TB, T, Nd) .

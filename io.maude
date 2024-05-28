@@ -9,6 +9,7 @@ fmod DCA2MC-BANNER is
         "\t\t All rights reserved. \n" +
         "\n Commands:" + 
         "\n     initialize[_,_,_] \t initializes the application with a system module ID, an initial state, and an LT formula for model checking as inputs" +
+        "\n     set-cores _ \t uses parallelization with a nonzero number of cores _ (e.g., 8)" +
         "\n     layerCheck _ \t generates states and their formulas with a layer configuration _ (e.g., 2 2)" +
         "\n     lastCheck \t\t model checks for the final layer" +
         "\n     check _ \t\t generates states and their formulas with a layer configuration _ and model checks for the final layer" +
@@ -23,6 +24,8 @@ mod DCA2MC-IO is
     pr STD-STREAM .
     pr META-LEVEL .
     pr DATABASE .
+    pr QUEUE{Worker} .
+    pr SEQUENCE .
 
     vars Atts : AttributeSet .
     vars RP? : ResultPair? .
@@ -38,12 +41,27 @@ mod DCA2MC-IO is
     op print    : -> State [ctor] .
     op idle     : -> State [ctor] .
     op quit     : -> State [ctor] .
+    op done     : -> State [ctor] .
+    op cleanup  : -> State [ctor] .
     op execComm : -> State [ctor] .
+    --- for parallelization
+    op initMI   : -> State [ctor] .
+    op working  : -> State [ctor] .
+    op waiting  : -> State [ctor] .
+    op checking : -> State [ctor] .
 
     --- attributes
     op db:_    : Database -> Attribute [ctor] .
     op state:_ : State    -> Attribute [ctor] .
     op input:_ : TermList -> Attribute [ctor] .
+    --- for parallelization
+    op cores:_      : Nat           -> Attribute [ctor] .
+    op workers:_    : Queue{Worker} -> Attribute [ctor] .
+    op loading[_]:_ : Oid Bool      -> Attribute [ctor] .
+    op pending[_]:_ : Oid Seq       -> Attribute [ctor] .
+    op jobs:_       : SFSet         -> Attribute [ctor] .
+    op res:_        : ResultType    -> Attribute [ctor] .
+    op depth:_      : Nat           -> Attribute [ctor] .
 
     rl [init] :
        < O : X@Class | state: init, Atts >
@@ -72,6 +90,10 @@ mod DCA2MC-IO is
 
     rl [quit] :
         < O : X@Class | state: execComm, input: 'q.@Command@, Atts >
-    =>  < O : X@Class | state: quit, input: empty > .
-    --- =>  < O : X@Class | state: quit, input: empty, Atts > .
+    =>  < O : X@Class | state: quit, input: empty, Atts > .
+
+    rl [cleanup] :
+        < O : X@Class | state: cleanup, Atts >
+    =>  < O : X@Class | state: done > .
+    --- =>  < O : X@Class | state: done, Atts > .
 endm

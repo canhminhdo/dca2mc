@@ -371,6 +371,10 @@ fmod STATE-FORMULAS-SET is
     eq simplifySFS(SFS) = SFS [owise] .
 endfm
 
+view SFSet from TRIV to STATE-FORMULAS-SET is
+    sort Elt to SFSet .
+endv
+
 fmod DB-CONFIG is
     pr STATE-FORMULAS-SET .
     pr CONVERSION .

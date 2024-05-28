@@ -76,8 +76,7 @@ mod DCA2MC-PROCESSING is
             procAnalyzeCommand('analyze.@Command@, DB') '\n
             '\b 'LayerCheck: '\s '\o 'success '\n
         ) >>
-    if not isEmptyDB(DB)
-    /\ T' := getTerm(
+    if T' := getTerm(
                 metaParse(
                     upModule('NAT-LIST, false),
                     downQidList(solveBubbleAndToken(T)),
@@ -97,25 +96,18 @@ mod DCA2MC-PROCESSING is
                 (result: RT))
             ) .
 
-    eq procLayerCheckCommand('layerCheck_[T], DB)
-    = << DB ; ('\r 'Error: '\o 'cannot 'find 'initialization. '\n) >> [owise] .
-
     *** lastCheck command
     op procLastCheckCommand : Term Database -> Tuple{Database,QidList} .
     ceq procLastCheckCommand('lastCheck.@Command@, DB)
-    = << DB ; ( if B then 
+    = << DB' ; ( if B then 
                     ('\b 'LastCheck: '\s '\o 'success '\n)
                 else 
                     ('\r 'LastCheck: '\s '\o 'failure '\n)
                 fi) >> 
-    if not isEmptyDB(DB) 
-    /\ M := getModule(DB)
+    if M := getModule(DB)
     /\ SFS := getSfSet(DB)
-    /\ B := lastLayerCheck(M, SFS) .
-
-    eq procLastCheckCommand('lastCheck.@Command@, DB) =
-    << DB ; ('\r 'Error: '\o 'cannot 'find 'initialization. '\n) >> [owise] .
-
+    /\ B := lastLayerCheck(M, SFS) 
+    /\ DB' := evalDB(DB, ((sfSet: emptySFS), (result: (if B then satisfied else unstatisfied fi)))) .
 
     *** check command
     op procCheckCommand : Term Database -> Tuple{Database,QidList} .
@@ -130,8 +122,7 @@ mod DCA2MC-PROCESSING is
                 fi
             )
         ) >>
-    if not isEmptyDB(DB)
-    /\ T' := getTerm(
+    if T' := getTerm(
                 metaParse(
                     upModule('NAT-LIST, false),
                     downQidList(solveBubbleAndToken(T)),
@@ -153,12 +144,9 @@ mod DCA2MC-PROCESSING is
     /\ B := if RT == unknown then lastLayerCheck(M, SFS') 
             else (if RT == satisfied then true else false fi) fi .
 
-    eq procCheckCommand('check_[T], DB)
-    = << DB ; ('\r 'Error: '\o 'cannot 'find 'initialization. '\n) >> [owise] .
-
     *** analyze command
     op procAnalyzeCommand : Term Database -> QidList .
-    ceq procAnalyzeCommand('analyze.@Command@, DB)
+    eq procAnalyzeCommand('analyze.@Command@, DB)
     = ('\b 'Analyzer: '\n
         '\t '\o 'currentDepth: qid(getCurrentDepth(DB)) '\n
         '\t '\o 'depthList: qid(getDepthList(DB)) '\n
@@ -166,9 +154,5 @@ mod DCA2MC-PROCESSING is
         --- '\t '\o '\t qid(analyze(getSfSet(DB))) '\n
         --- '\t '\o '\t qid(getModule(DB), analyzeF(getSfSet(DB))) '\n
         '\t '\o 'result: qid(getResult(DB)) '\n
-    )
-    if not isEmptyDB(DB) .
-
-    eq procAnalyzeCommand('analyze.@Command@, DB) 
-    = ('\r 'Error: '\o 'cannot 'find 'initialization. '\n) [owise] .
+    ) .
 endm

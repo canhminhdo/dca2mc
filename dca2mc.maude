@@ -1,17 +1,19 @@
 load full-maude-lite.maude
 load file.maude
 load metaInterpreter.maude
-load grammar.maude
+load loading.maude
 load utils.maude
 load database.maude
 load checker.maude
+load grammar.maude
 load io.maude
 load parsing.maude
 load processing.maude
 load handling.maude
+load handling-parallel.maude
 
 mod DCA2MC is
-    pr DCA2MC-HANDLING .
+    pr DCA2MC-HANDLING-PARALLEL .
     
     --- object and class definition
     op o      : -> Oid [ctor] .
@@ -19,7 +21,7 @@ mod DCA2MC is
 
     --- initial value for attributes
     op initAtts : -> AttributeSet .
-    eq initAtts = db: emptyDB, state: init, input: empty .
+    eq initAtts = db: emptyDB, state: init, input: empty, cores: 0, workers: emptyq .
 
     op run : -> Configuration [ctor] .
     eq run = <> < o : DCA2MC | initAtts > .

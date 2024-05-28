@@ -11,78 +11,119 @@ mod DCA2MC-HANDLING is
     vars QIL : QidList .
     vars O : Oid .
     
+    --- initialize command
     crl [initialize] :
         < O : X@Class |
             db: DB,
             input: ('initialize`[_`,_`,_`][T, T1, T2]),
             state: execComm,
+            cores: 0,
             Atts >
     =>  < O : X@Class |
             db: DB',
             input: empty,
             state: print,
+            cores: 0,
             Atts >
         write(stdout, O, printTokens(QIL))
     if << DB' ; QIL >> := procInitializeCommand('initialize`[_`,_`,_`][T, T1, T2], DB) .
 
+    --- handle uninitialize database
+    op isValidCmd : Term -> Bool .
+    eq isValidCmd('layerCheck_[T]) = true .
+    eq isValidCmd('lastCheck.@Command@) = true .
+    eq isValidCmd('set-cores_[T]) = true .
+    eq isValidCmd('analyze.@Command@) = true .
+    eq isValidCmd(T) = false [owise] .
+
+    crl < O : X@Class |
+            db: DB,
+            input: T,
+            state: execComm,
+            Atts >
+    =>  < O : X@Class |
+            db: DB,
+            input: (empty),
+            state: print,
+            Atts >
+        write(stdout, O, printTokens('\r 'Error: '\o 'cannot 'find 'initialization. '\n))
+    if isValidCmd(T) /\ isEmptyDB(DB) .
+
+    --- layerCheck command
     crl [layerCheck] :
         < O : X@Class |
             db: DB,
             input: ('layerCheck_[T]),
             state: execComm,
+            cores: 0,
             Atts >
     =>  < O : X@Class |
             db: DB',
             input: empty,
             state: (if Ty == unstatisfied or-else Ty == satisfied then quit else print fi),
+            cores: 0,
             Atts >
         write(stdout, O, printTokens(QIL))
-    if << DB' ; QIL >> := procLayerCheckCommand('layerCheck_[T], DB)
+    if not isEmptyDB(DB)
+    /\ << DB' ; QIL >> := procLayerCheckCommand('layerCheck_[T], DB)
     /\ Ty := getResult(DB') .
 
+    --- lastCheck command
     crl [lastCheck] :
         < O : X@Class |
             db: DB,
             input: ('lastCheck.@Command@),
             state: execComm,
+            cores: 0,
             Atts >
     =>  < O : X@Class |
             db: DB',
             input: empty,
             state: print,
+            cores: 0,
             Atts >
         write(stdout, O, printTokens(QIL))
-    if << DB' ; QIL >> := procLastCheckCommand('lastCheck.@Command@, DB) .
+    if not isEmptyDB(DB)
+    /\ << DB' ; QIL >> := procLastCheckCommand('lastCheck.@Command@, DB) .
 
+    --- check command
     crl [check] :
         < O : X@Class |
             db: DB,
             input: ('check_[T]),
             state: execComm,
+            cores: 0,
             Atts >
     =>  < O : X@Class |
             db: DB',
             input: empty,
             state: (if Ty == unstatisfied or-else Ty == satisfied then quit else print fi),
+            cores: 0,
             Atts >
         write(stdout, O, printTokens(QIL))
-    if << DB' ; QIL >> := procCheckCommand('check_[T], DB)
+    if not isEmptyDB(DB)
+    /\ << DB' ; QIL >> := procCheckCommand('check_[T], DB)
     /\ Ty := getResult(DB') .
 
+    --- analyze command
     crl [analyze] :
         < O : X@Class |
             db: DB,
             input: ('analyze.@Command@),
             state: execComm,
+            cores: 0,
             Atts >
     =>  < O : X@Class |
             db: DB,
             input: empty,
             state: print,
+            cores: 0,
             Atts >
         write(stdout, O, printTokens(QIL))
-    if QIL := procAnalyzeCommand('analyze.@Command@, DB) .
-
+    if not isEmptyDB(DB)
+    /\ QIL := procAnalyzeCommand('analyze.@Command@, DB) .
+    
+    --- help command
     rl [help] :
         < O : X@Class |
             db: DB,

@@ -1,0 +1,542 @@
+mod JOB-HANDLING is
+    pr MAP{Worker,SFSet} .
+    pr META-INTERPRETER .
+    pr DCA2MC-HANDLING .
+
+    vars W2J : Map{Worker,SFSet} .
+    vars W W' : Queue{Worker} .
+    vars SF : State&Formulas .
+    vars SFS SFS' : SFSet .
+    vars MI O : Oid .
+    vars N : Nat .
+
+    sort W2W .
+    op <_,_> : Queue{Worker} Queue{Worker} -> W2W .
+    
+    --- get workers
+    op getWorkers  : Queue{Worker} Nat               -> W2W .
+    op getWorkers* : Queue{Worker} Nat Queue{Worker} -> W2W .
+    eq getWorkers(W, N) = getWorkers*(W, N, emptyq) .
+    eq getWorkers*(MI | W, N, W') = if N > 0 then
+                                        getWorkers*(W, sd(N, 1), MI | W')
+                                    else
+                                        < MI | W, W' >
+                                    fi .
+    eq getWorkers*(emptyq, N, W') = < emptyq, W' > .
+
+    --- divide batch jobs evenly to each worker
+    op initW2J : Queue{Worker} -> Map{Worker,SFSet} .
+    eq initW2J(MI | W) =  MI |-> emptySFS, initW2J(W) .
+    eq initW2J(emptyq) = empty .
+
+    op produceJobs2Workers : Queue{Worker} SFSet -> Map{Worker,SFSet} .
+    eq produceJobs2Workers(W, SFS) = produceJobs2Workers*(W, W, initW2J(W), SFS) .
+
+    op produceJobs2Workers* : Queue{Worker} Queue{Worker} Map{Worker,SFSet} SFSet -> Map{Worker,SFSet} .
+    eq produceJobs2Workers*(W, MI | W', (MI |-> SFS', W2J), (SF, SFS))
+    = produceJobs2Workers*(W, W', (MI |-> (SF, SFS'), W2J), SFS) .
+
+    eq produceJobs2Workers*(W, emptyq, W2J, SFS) = produceJobs2Workers*(W, W, W2J, SFS) .
+    eq produceJobs2Workers*(W, W', W2J, emptySFS) = W2J .
+
+    *** distribute a batch job to each worker for intermediate layers
+    op handleJobByWorkers : Oid Map{Worker,SFSet} -> Configuration .
+    eq handleJobByWorkers(O, ((MI |-> SFS), W2J))
+    =   reduceTerm(MI, O,
+            'DCA2MC-CHECKER-MI,
+            'layerCheckPar[
+                upTerm(SFS)
+            ]
+        )
+        handleJobByWorkers(O, W2J) .
+    eq handleJobByWorkers(O, empty) = none .
+endm
+
+mod DCA2MC-HANDLING-PARALLEL is
+    pr JOB-HANDLING .
+
+    vars W2J : Map{Worker,SFSet} .
+    vars W W1 W2 : Queue{Worker} .
+    vars Atts : AttributeSet .
+    vars RT RT' : ResultType .
+    vars SF : State&Formulas .
+    vars M M' M'' : Module .
+    vars DB DB' : Database .
+    vars N N' C D D' : Nat .
+    vars SFS SFS' : SFSet .
+    vars X@Class : Cid .
+    vars O O' MI : Oid .
+    vars NL : NatList .
+    vars T T' : Term .
+    vars Rest : Seq .
+    vars Ty : Type .
+    vars QI : Qid .
+    vars B : Bool .
+
+    --- layerCheck command with parallelization
+    crl [layerCheck?] :
+        < O : X@Class |
+            db: DB,
+            input: ('layerCheck_[T]),
+            state: execComm,
+            cores: N,
+            Atts >
+    =>  < O : X@Class |
+            db: DB,
+            input: empty,
+            state: print,
+            cores: N,
+            Atts >
+        write(stdout, O, printTokens('\b 'Par-LayerCheck: '\s '\o 'success 'but 'does 'nothing '\n))
+    if N > 0
+    /\ T' := getTerm(
+                metaParse(
+                    upModule('NAT-LIST, false),
+                    downQidList(solveBubbleAndToken(T)),
+                    'NatList
+                )
+            )
+    /\ NL := downTerm(T', nil)
+    /\ D := sum(NL)
+    /\ D == 0
+    /\ not isEmptyDB(DB) .
+
+    crl [layerCheck] :
+        < O : X@Class |
+            db: DB,
+            input: ('layerCheck_[T]),
+            state: execComm,
+            cores: N,
+            Atts >
+    =>  < O : X@Class |
+            db: DB',
+            input: empty,
+            state: working,
+            cores: N,
+            --- initialize internal data
+            jobs: getSfSet(DB),
+            res: getResult(DB),
+            depth: D,
+            Atts >
+    if N > 0
+    /\ T' := getTerm(
+                metaParse(
+                    upModule('NAT-LIST, false),
+                    downQidList(solveBubbleAndToken(T)),
+                    'NatList
+                )
+            )
+    /\ NL := downTerm(T', nil)
+    /\ D := sum(NL) 
+    /\ D > 0
+    /\ not isEmptyDB(DB)
+    /\ DB' := evalDB(
+                DB,
+                ((currentDepth: (getCurrentDepth(DB) + sum(NL))),
+                (depthList: (append(getDepthList(DB), NL))),
+                (sfSet: emptySFS))
+            )
+    [print "[layerCheck]"] .
+
+    crl [HandleBatchJob] :
+        < O : X@Class |
+            state: working,
+            workers: W,
+            jobs: SFS,
+            depth: D,
+            Atts >
+    =>  < O : X@Class |
+            state: waiting,
+            workers: W1,
+            jobs: emptySFS,
+            depth: D,
+            Atts >
+        handleJobByWorkers(O, W2J)
+    if D > 0
+    /\ C := | SFS | /\ C > 0
+    /\ < W1, W2 > := getWorkers(W, C)
+    /\ W2J := produceJobs2Workers(W2, SFS)
+    [print "[HandleBatchJob]"] .
+
+    crl [Result4BatchJob] : 
+        < O : X@Class |
+            state: waiting,
+            workers: W,
+            jobs: SFS,
+            res: RT,
+            Atts >
+        reducedTerm(O, MI, N, T, Ty)
+    =>  < O : X@Class |
+            state: waiting,
+            workers: (MI | W),
+            jobs: (SFS', SFS),
+            res: (if RT' == unstatisfied then RT' else RT fi),
+            Atts >
+    if Ty == 'Result4Checking
+    /\ < RT' | SFS' > := downTerm(T, errRes)
+    [print "[Result4BatchJob]"] .
+
+    crl [BatchJobDone] : 
+        < O : X@Class |
+            db: DB,
+            state: waiting,
+            cores: N,
+            workers: W,
+            --- clean internal data?
+            jobs: SFS,
+            res: RT,
+            depth: D,
+            Atts >
+    =>  if RT == unstatisfied then
+            < O : X@Class |
+                db: evalDB(DB, (result: unstatisfied)),
+                state: quit,
+                cores: N,
+                workers: W,
+                Atts >
+        else
+            if C == 0 then
+                < O : X@Class |
+                    db: evalDB(DB, (result: satisfied)),
+                    state: quit,
+                    cores: N,
+                    workers: W,
+                    Atts >
+            else
+                < O : X@Class |
+                    db: DB,
+                    state: working,
+                    cores: N,
+                    workers: W,
+                    --- internal data
+                    jobs: SFS',
+                    res: RT,
+                    depth: sd(D, 1),
+                    Atts >
+            fi
+        fi
+    if qsize(W) == N 
+    /\ SFS' := simplifySFS(SFS)
+    /\ C := | SFS' |
+    /\ D' := (sd(getCurrentDepth(DB), D) + 1)
+    [print "[BatchJobDone] Depth = " D' ", C = " C] .
+
+    crl [layerCheckDone] :
+        < O : X@Class |
+            db: DB,
+            state: working,
+            workers: W,
+            cores: N,
+            --- clean internal data
+            jobs: SFS,
+            res: RT,
+            depth: 0,
+            Atts >
+    =>  < O : X@Class |
+            db: evalDB(DB, (sfSet: SFS)),
+            state: print,
+            workers: W,
+            cores: N,
+            Atts >
+        write(stdout, O, printTokens('\b 'Par-LayerCheck ': '\s '\o 'success '\n))
+    if qsize(W) == N
+    [print "[layerCheckDone]"] .
+
+    --- lastCheck command with parallelization
+    crl [lastCheck] :
+        < O : X@Class |
+            db: DB,
+            input: ('lastCheck.@Command@),
+            state: execComm,
+            cores: N,
+            Atts >
+    =>  < O : X@Class |
+            db: evalDB(DB, (sfSet: emptySFS)),
+            input: empty,
+            state: checking,
+            cores: N,
+            --- initialize internal data
+            jobs: getSfSet(DB),
+            res: getResult(DB),
+            Atts >
+    if not isEmptyDB(DB) .
+    
+    rl [HandleJob] :
+        < O : X@Class |
+            state: checking,
+            workers: (MI | W),
+            jobs: (SF, SFS),
+            res: unknown,
+            Atts >
+    =>  < O : X@Class |
+            state: checking,
+            workers: W,
+            jobs: SFS,
+            res: unknown,
+            Atts >
+        reduceTerm(MI, O,
+            'DCA2MC-CHECKER-MI,
+            'lastLayerCheckPar[
+                upTerm(SF)
+            ]
+        )
+    [print "[HandleJob]"] .
+    
+    crl [Result4Job] :
+        < O : X@Class |
+            db: DB,
+            state: checking,
+            workers: W,
+            res: RT,
+            Atts >
+        reducedTerm(O, MI, N, T, Ty)
+    =>  < O : X@Class |
+            db: (if B then DB else evalDB(DB, (result: unstatisfied)) fi),
+            state: checking,
+            workers: (MI | W),
+            res: (if B then RT else unstatisfied fi),
+            Atts >
+    if Ty == 'Bool
+    /\ B := downTerm(T, errBool)
+    /\ B =/= errBool
+    [print "[Result4Job] " B] .
+
+    crl [lastCheckDone?] :
+        < O : X@Class |
+            db: DB,
+            state: checking,
+            workers: W,
+            cores: N,
+            --- clean internal data
+            res: unstatisfied,
+            jobs: SFS,
+            Atts >
+    =>  < O : X@Class |
+            db: DB,
+            state: quit,
+            workers: W,
+            cores: N,
+            Atts >
+        write(stdout, O, printTokens('\r 'Par-LastCheck ': '\s '\o 'failure '\n))
+    if qsize(W) == N 
+    [print "[lastCheckDone?]"] .
+
+    crl [lastCheckDone] :
+        < O : X@Class |
+            db: DB,
+            state: checking,
+            workers: W,
+            cores: N,
+            --- clean internal data
+            res: unknown,
+            jobs: emptySFS,
+            Atts >
+    =>  < O : X@Class |
+            db: evalDB(DB, (result: satisfied)),
+            state: quit,
+            workers: W,
+            cores: N,
+            Atts >
+        write(stdout, O, printTokens('\b 'Par-LastCheck ': '\s '\o 'success '\n))
+    if qsize(W) == N 
+    [print "[lastCheckDone]"] .
+
+    --- set-cores command
+    crl [setCores] :
+        < O : X@Class |
+            db: DB,
+            input: ('set-cores_[T]),
+            state: execComm,
+            cores: N,
+            Atts >
+    =>  < O : X@Class |
+            db: DB,
+            input: empty,
+            state: (if N' >= 1 then initMI else print fi),
+            cores: N',
+            Atts >
+            (if (N' >= 1) then 
+                produceInterpreter(O, N') 
+            else 
+                write(stdout, O, printTokens('\b 'Set 'cores: '\s '\o 'success 'with qid(N) '\n))
+            fi)
+    if not isEmptyDB(DB)
+    /\ T' := getTerm(
+                metaParse(
+                    upModule('NAT, false),
+                    downQidList(solveBubbleAndToken(T)),
+                    'Nat
+                )
+            )
+    /\ N' := downTerm(T', 1) .
+
+    *** request to create N meta-interpreters
+    op produceInterpreter : Oid Nat -> Configuration .
+    ceq produceInterpreter(O, N) = createInterpreter(interpreterManager, O, newProcess)
+        produceInterpreter(O, sd(N, 1))
+    if N > 0 .
+    eq produceInterpreter(O, N) = none [owise] .
+
+    rl [CreatedWorker] : 
+        < O : X@Class |
+            state: initMI,
+            Atts >
+        createdInterpreter(O, O', MI)
+    =>  < O : X@Class |
+            state: initMI,
+            (loading[MI]: false),
+            (pending[MI]: prelude fullmaude dca2mc),
+            Atts >
+        [print "[CreatedWorker]"] .
+
+    rl [LoadingModule] : 
+        < O : X@Class |
+            state: initMI,
+            (loading[MI]: false),
+            (pending[MI]: m(QI) Rest),
+            Atts >
+    =>  < O : X@Class |
+            state: initMI,
+            (loading[MI]: true),
+            (pending[MI]: Rest),
+            Atts >
+        insertModule(MI, O, upModule(QI, false)) .
+    
+    rl [LoadingModule] : 
+        < O : X@Class |
+            state: initMI,
+            (pending[MI]: m(QI) Rest),
+            Atts >
+        insertedModule(O, MI)
+    =>  < O : X@Class |
+            state: initMI,
+            (pending[MI]: Rest),
+            Atts >
+        insertModule(MI, O, upModule(QI, false)) .
+
+    rl [LoadingModule] : 
+        < O : X@Class |
+            state: initMI,
+            (pending[MI]: m(QI) Rest),
+            Atts >
+        insertedView(O, MI)
+    =>  < O : X@Class |
+            state: initMI,
+            (pending[MI]: Rest),
+            Atts >
+        insertModule(MI, O, upModule(QI, false)) .
+    
+    rl [LoadingView] : 
+        < O : X@Class |
+            state: initMI,
+            (pending[MI]: v(QI) Rest),
+            Atts >
+        insertedModule(O, MI)
+    =>  < O : X@Class |
+            state: initMI,
+            (pending[MI]: Rest),
+            Atts >
+        insertView(MI, O, upView(QI)) .
+
+    rl [LoadingView] : 
+        < O : X@Class |
+            state: initMI,
+            (pending[MI]: v(QI) Rest),
+            Atts >
+        insertedView(O, MI)
+    =>  < O : X@Class |
+            state: initMI,
+            (pending[MI]: Rest),
+            Atts >
+        insertView(MI, O, upView(QI)) .
+
+    crl [LoadData4Worker] :
+        < O : X@Class |
+            db: DB,
+            state: initMI,
+            (loading[MI]: true),
+            (pending[MI]: nil),
+            Atts >
+        insertedModule(O, MI)
+    =>  < O : X@Class |
+            db: DB,
+            state: initMI,
+            (loading[MI]: false),
+            (pending[MI]: nil),
+            Atts >
+        insertModule(MI, O, M'')
+    if M' := upModule('DCA2MC-CHECKER-MI, false)
+    /\ M'' := addEqs(
+                (eq 'pTB.Tableau = upTerm(getTableau(DB)) [none] . )
+                (eq 'pM.Module = upTerm(upModule(getCurrent(DB), true)) [none] . )
+                (eq 'pVAR.Term = upTerm(getVarTerm(getStateSort(DB))) [none] . ),
+                M'
+            ) .
+
+    rl [Loaded] : 
+        < O : X@Class |
+            state: initMI,
+            workers: W,
+            (loading[MI]: false),
+            (pending[MI]: nil),
+            Atts >
+        insertedModule(O, MI)
+    =>  < O : X@Class |
+            state: initMI,
+            workers: (W | MI),
+            Atts >
+    [print "[Loaded]"] .
+    
+    crl [SetupDone] : 
+        < O : X@Class |
+            state: initMI,
+            cores: N,
+            workers: W,
+            Atts >
+    =>  < O : X@Class |
+            state: print,
+            cores: N,
+            workers: W,
+            Atts >
+        write(stdout, O, printTokens('\b 'Set 'cores: '\s '\o 'success 'with qid(N) 'meta-interpreters '\n))
+    if qsize(W) == N [print "[SetupDone]"] .
+
+    --- stoping workers
+    crl [StopWorkers] : 
+        < O : X@Class |
+            workers: W,
+            state: quit,
+            Atts >
+    =>  < O : X@Class |
+            workers: W,
+            state: quit,
+            Atts >
+        produceQuitMsg(O, W)
+    if qsize(W) > 0 [print "[StopWorkers]"] .
+
+    rl [Bye] : 
+        < O : X@Class |
+            workers: (MI | W),
+            Atts >
+        bye(O, MI)
+    =>  < O : X@Class |
+            workers: W, 
+            Atts >
+        [print "[Bye]"] .
+
+    rl [ByeDone] : 
+        < O : X@Class |
+            workers: emptyq,
+            state: quit,
+            Atts >
+    =>  < O : X@Class |
+            workers: emptyq,
+            state: cleanup,
+            Atts >
+    [print "[ByeDone]"] .
+
+    *** quit all meta-interpreters
+    op produceQuitMsg : Oid Queue{Worker} -> Configuration .
+    eq produceQuitMsg(O, (MI | W)) = quit(MI, O) produceQuitMsg(O, W) .
+    eq produceQuitMsg(O, emptyq) = none .
+endm

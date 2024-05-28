@@ -9,6 +9,8 @@ For the final layer, we conduct model checking experiments for each state and it
 
 - `initialize[_,_,_]` initialize the application with a system module ID, an initial state, and an LTL formula as a desired property for model checking as inputs.
 
+- `set-cores _` uses parallelization with a nonzero number of cores `_` (e.g., 8).
+
 - `layerCheck _` generates states and formulas with a layer configuration `_`, that is a list of nonzero natural numbers (e.g., 2 2).
 
 - `lastCheck` conducts model checking experiments for the final layer.
@@ -41,7 +43,13 @@ initialize[TAS-CHECK, init, lofree]
 
 where `TAS-CHECK` is the system module ID, `init` is the initial state, and `lofree` is the desired property.
 
-**Step 3:** Conduct model checking experiments for intermediate layers.
+**Step 3:** Use parallelization for `DCA2MC`.
+
+```
+set-cores 8
+```
+
+**Step 4:** Conduct model checking experiments for intermediate layers.
 
 ```
 layerCheck 2 2
@@ -49,14 +57,14 @@ layerCheck 2 2
 
 where `2 2` is the layer configuration denoting the first and second layer depths are 2 and 2, respectively.
 
-**Step 4:** Conduct model checking experiments for the final layer.
+**Step 5:** Conduct model checking experiments for the final layer.
 
 ```
 lastCheck
 ```
 This command will return `true` if TAS enjoys the desired property; otherwise, `false` is returned.
 
-**Step 5:** Quit the application.
+**Step 6:** Quit the application.
 
 ```
 q

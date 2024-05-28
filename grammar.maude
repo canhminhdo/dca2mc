@@ -9,6 +9,7 @@ fmod DCA2MC-SIGN is
     op check_                   : @Bubble@                 -> @Command@ .
     op help                     :                          -> @Command@ .
     op q                        :                          -> @Command@ .
+    op set-cores_               : @Token@                  -> @Command@ .
 endfm
 
 *** Step 2: Include into grammar

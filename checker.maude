@@ -25,9 +25,9 @@ fmod DCA2MC-CHECKER is
     ********************************************************
     *** FOR INTERMEDIATE LAYERS                          ***
     ********************************************************
-
-    op <_|_> : ResultType SFSet   -> Result4Checking .
-    op <_|_> : ResultType NodeSet -> Result4TryEval .
+    op errRes :                    -> [Result4Checking] .
+    op <_|_>  : ResultType SFSet   -> Result4Checking .
+    op <_|_>  : ResultType NodeSet -> Result4TryEval .
     
     --- collect all states & formulas
     op collect : Module Tableau Term SFSet NatList -> Result4Checking .
@@ -198,6 +198,7 @@ fmod DCA2MC-CHECKER is
     ********************************************************
     *** FOR FINAL LAYER                                  ***
     ********************************************************
+    op errBool               :                     -> [Bool] .
     op lastLayerCheck        : Module SFSet        -> Bool .
     op lastLayerCheckNodeSet : Module Term NodeSet -> Bool .
     op lastLayerCheckNode    : Module Term Node    -> Bool .
@@ -225,4 +226,20 @@ fmod DCA2MC-CHECKER is
                                              fi   
     if CX := getTerm(metaReduce(M, 'modelCheck[T, F])) .
     eq lastLayerCheckNode(M, T, {emptyTermSet}) = true .
+endfm
+
+fmod DCA2MC-CHECKER-MI is
+    pr DCA2MC-CHECKER .
+    
+    op pTB  : -> Tableau .
+    op pM   : -> Module .
+    op pVAR : -> Term .
+
+    vars SFS : SFSet .
+
+    op layerCheckPar : SFSet -> Result4Checking .
+    eq layerCheckPar(SFS) = layerCheck(pM, pTB, pVAR, SFS, 1) .
+    
+    op lastLayerCheckPar : SFSet -> Bool .
+    eq lastLayerCheckPar(SFS) = lastLayerCheck(pM, SFS) . 
 endfm

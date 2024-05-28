@@ -4,6 +4,7 @@ load debug.maude .
 load specs/tas.maude
 load dca2mc
 initialize[TAS-CHECK, init, lofree]
+set-cores 2
 layerCheck 2 2
 lastCheck
 q

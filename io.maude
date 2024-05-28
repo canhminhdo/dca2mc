@@ -24,7 +24,7 @@ mod DCA2MC-IO is
     pr STD-STREAM .
     pr META-LEVEL .
     pr DATABASE .
-    pr QUEUE{Worker} .
+    pr IQUEUE{Worker} .
     pr SEQUENCE .
 
     vars Atts : AttributeSet .
@@ -45,10 +45,11 @@ mod DCA2MC-IO is
     op cleanup  : -> State [ctor] .
     op execComm : -> State [ctor] .
     --- for parallelization
-    op initMI   : -> State [ctor] .
-    op working  : -> State [ctor] .
-    op waiting  : -> State [ctor] .
-    op checking : -> State [ctor] .
+    op initMI    : -> State [ctor] .
+    op working   : -> State [ctor] .
+    op waiting   : -> State [ctor] .
+    op checking  : -> State [ctor] .
+    op terminate : -> State [ctor] .
 
     --- attributes
     op db:_    : Database -> Attribute [ctor] .
@@ -96,4 +97,7 @@ mod DCA2MC-IO is
         < O : X@Class | state: cleanup, Atts >
     =>  < O : X@Class | state: done > .
     --- =>  < O : X@Class | state: done, Atts > .
+
+    rl [end] : < O : X@Class | state: done, Atts > wrote(O, stdout)
+    => < O : X@Class | state: done > .
 endm

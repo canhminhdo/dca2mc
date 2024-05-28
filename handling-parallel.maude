@@ -504,15 +504,18 @@ mod DCA2MC-HANDLING-PARALLEL is
     --- stoping workers
     crl [StopWorkers] : 
         < O : X@Class |
-            workers: W,
             state: quit,
+            cores: N,
+            workers: W,
             Atts >
     =>  < O : X@Class |
+            state: terminate,
+            cores: N,
             workers: W,
-            state: quit,
             Atts >
         produceQuitMsg(O, W)
-    if qsize(W) > 0 [print "[StopWorkers]"] .
+    if N > 0
+    /\ qsize(W) == N [print "[StopWorkers]"] .
 
     rl [Bye] : 
         < O : X@Class |
@@ -526,12 +529,12 @@ mod DCA2MC-HANDLING-PARALLEL is
 
     rl [ByeDone] : 
         < O : X@Class |
+            state: terminate,
             workers: emptyq,
-            state: quit,
             Atts >
     =>  < O : X@Class |
-            workers: emptyq,
             state: cleanup,
+            workers: emptyq,
             Atts >
     [print "[ByeDone]"] .
 

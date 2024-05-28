@@ -1,4 +1,4 @@
-fmod QUEUE{X :: TRIV} is
+fmod IQUEUE{X :: TRIV} is
     protecting BOOL .
     pr NAT .
 

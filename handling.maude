@@ -30,6 +30,7 @@ mod DCA2MC-HANDLING is
 
     --- handle uninitialize database
     op isValidCmd : Term -> Bool .
+    eq isValidCmd('check_[T]) = true .
     eq isValidCmd('layerCheck_[T]) = true .
     eq isValidCmd('lastCheck.@Command@) = true .
     eq isValidCmd('set-cores_[T]) = true .

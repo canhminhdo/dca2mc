@@ -65,6 +65,7 @@ mod DCA2MC-HANDLING-PARALLEL is
     vars N N' C D D' : Nat .
     vars SFS SFS' : SFSet .
     vars X@Class : Cid .
+    vars TL : TermList .
     vars O O' MI : Oid .
     vars NL : NatList .
     vars T T' : Term .
@@ -77,7 +78,7 @@ mod DCA2MC-HANDLING-PARALLEL is
     crl [layerCheck?] :
         < O : X@Class |
             db: DB,
-            input: ('layerCheck_[T]),
+            input: ('layerCheck_[T], TL),
             state: execComm,
             cores: N,
             Atts >
@@ -104,13 +105,13 @@ mod DCA2MC-HANDLING-PARALLEL is
     crl [layerCheck] :
         < O : X@Class |
             db: DB,
-            input: ('layerCheck_[T]),
+            input: ('layerCheck_[T], TL),
             state: execComm,
             cores: N,
             Atts >
     =>  < O : X@Class |
             db: DB',
-            input: empty,
+            input: TL,
             state: working,
             cores: N,
             --- initialize internal data
@@ -224,6 +225,7 @@ mod DCA2MC-HANDLING-PARALLEL is
     crl [layerCheckDone] :
         < O : X@Class |
             db: DB,
+            input: empty,
             state: working,
             workers: W,
             cores: N,
@@ -233,10 +235,38 @@ mod DCA2MC-HANDLING-PARALLEL is
             depth: 0,
             Atts >
     =>  < O : X@Class |
+            input: empty,
             db: evalDB(DB, (sfSet: SFS)),
             state: print,
             workers: W,
             cores: N,
+            Atts >
+        write(stdout, O, printTokens('\b 'Par-LayerCheck ': '\s '\o 'success '\n))
+    if qsize(W) == N
+    [print "[layerCheckDone]"] .
+
+    --- if we still have `lastCheck` command in the input
+    crl [layerCheckDone] :
+        < O : X@Class |
+            db: DB,
+            input: ('lastCheck.@Command@),
+            state: working,
+            workers: W,
+            cores: N,
+            --- clean internal data
+            jobs: SFS,
+            res: RT,
+            depth: 0,
+            Atts >
+    =>  < O : X@Class |
+            db: DB,
+            input: empty,
+            state: print&checking,
+            workers: W,
+            cores: N,
+            --- initialize internal data
+            jobs: SFS,
+            res: RT,
             Atts >
         write(stdout, O, printTokens('\b 'Par-LayerCheck ': '\s '\o 'success '\n))
     if qsize(W) == N
@@ -259,7 +289,8 @@ mod DCA2MC-HANDLING-PARALLEL is
             jobs: getSfSet(DB),
             res: getResult(DB),
             Atts >
-    if not isEmptyDB(DB) .
+    if N > 0
+    /\ not isEmptyDB(DB) .
     
     rl [HandleJob] :
         < O : X@Class |
@@ -340,6 +371,23 @@ mod DCA2MC-HANDLING-PARALLEL is
         write(stdout, O, printTokens('\b 'Par-LastCheck ': '\s '\o 'success '\n))
     if qsize(W) == N 
     [print "[lastCheckDone]"] .
+
+    --- check command with parallelization
+    crl [check] :
+        < O : X@Class |
+            db: DB,
+            input: ('check_[T]),
+            state: execComm,
+            cores: N,
+            Atts >
+    =>  < O : X@Class |
+            db: DB,
+            input: ('layerCheck_[T], 'lastCheck.@Command@),
+            state: execComm,
+            cores: N,
+            Atts >
+    if N > 0
+    /\ not isEmptyDB(DB) .
 
     --- set-cores command
     crl [setCores] :
@@ -509,7 +557,7 @@ mod DCA2MC-HANDLING-PARALLEL is
             workers: W,
             Atts >
     =>  < O : X@Class |
-            state: terminate,
+            state: terminating,
             cores: N,
             workers: W,
             Atts >
@@ -519,17 +567,19 @@ mod DCA2MC-HANDLING-PARALLEL is
 
     rl [Bye] : 
         < O : X@Class |
+            state: terminating,
             workers: (MI | W),
             Atts >
         bye(O, MI)
     =>  < O : X@Class |
+            state: terminating,
             workers: W, 
             Atts >
         [print "[Bye]"] .
 
     rl [ByeDone] : 
         < O : X@Class |
-            state: terminate,
+            state: terminating,
             workers: emptyq,
             Atts >
     =>  < O : X@Class |

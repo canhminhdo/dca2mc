@@ -45,11 +45,12 @@ mod DCA2MC-IO is
     op cleanup  : -> State [ctor] .
     op execComm : -> State [ctor] .
     --- for parallelization
-    op initMI    : -> State [ctor] .
-    op working   : -> State [ctor] .
-    op waiting   : -> State [ctor] .
-    op checking  : -> State [ctor] .
-    op terminate : -> State [ctor] .
+    op initMI         : -> State [ctor] .
+    op working        : -> State [ctor] .
+    op waiting        : -> State [ctor] .
+    op checking       : -> State [ctor] .
+    op terminating      : -> State [ctor] .
+    op print&checking : -> State [ctor] .
 
     --- attributes
     op db:_    : Database -> Attribute [ctor] .
@@ -69,9 +70,13 @@ mod DCA2MC-IO is
     => < O : X@Class | state: print, Atts >
         write(stdout, O, banner) .
     
-    rl [wrote] :
+    rl [print] :
         < O : X@Class | state: print, Atts > wrote(O, stdout)
     =>  < O : X@Class | state: idle, Atts > .
+
+    rl [print&checking] :
+        < O : X@Class | state: print&checking, Atts > wrote(O, stdout)
+    =>  < O : X@Class | state: checking, Atts > .
 
     rl [input] :
         < O : X@Class | state: idle, Atts >

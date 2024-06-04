@@ -170,7 +170,7 @@ mod DCA2MC-HANDLING-PARALLEL is
     =>  < O : X@Class |
             state: waiting,
             workers: (MI | W),
-            jobs: (SFS', SFS),
+            jobs: merge(SFS', SFS),
             res: (if RT' == unstatisfied then RT' else RT fi),
             Atts >
     if Ty == 'Result4Checking
@@ -210,15 +210,14 @@ mod DCA2MC-HANDLING-PARALLEL is
                     cores: N,
                     workers: W,
                     --- internal data
-                    jobs: SFS',
+                    jobs: SFS,
                     res: RT,
                     depth: sd(D, 1),
                     Atts >
             fi
         fi
     if qsize(W) == N 
-    /\ SFS' := simplifySFS(SFS)
-    /\ C := | SFS' |
+    /\ C := | SFS |
     /\ D' := (sd(getCurrentDepth(DB), D) + 1)
     [print "[BatchJobDone] Depth = " D' ", C = " C] .
 

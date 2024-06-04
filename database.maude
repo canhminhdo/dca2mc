@@ -141,7 +141,7 @@ endfm
 
 fmod NODE-SET is
     protecting SET{Node} * (sort NeSet{Node} to NeNodeSet, sort Set{Node} to NodeSet) .
-    
+
     vars TS TS' : TermSet .
     vars NS : NodeSet .
 
@@ -344,11 +344,33 @@ fmod TABLEAU is
     /\ ID2N'' := insert(ID', {node: Nd', type: getNodeType(Nd'), childs: empty}, ID2N') . --- add a new entry for node ID'
 endfm
 
+fmod OR-FORMULAS is
+    pr NODE-SET .
+    sort OrFormulas .
+
+    op `[_`] : NodeSet -> OrFormulas .
+endfm
+
+view OrFormulas from TRIV to OR-FORMULAS is
+    sort Elt to OrFormulas .
+endv
+
+fmod AND-FORMULAS is
+    protecting SET{OrFormulas} * (
+        sort NeSet{OrFormulas} to NeAndFormulas, 
+        sort Set{OrFormulas} to AndFormulas, 
+        op empty : -> Set{OrFormulas} to emptyAF) .
+endfm
+
+view AndFormulas from TRIV to AND-FORMULAS is
+    sort Elt to AndFormulas .
+endv
+
 fmod STATE-FORMULAS is
-    pr 2TUPLE{Term,NodeSet} * (op `(_`,_`) to `{_:_`},
+    pr 2TUPLE{Term,AndFormulas} * (op `(_`,_`) to `{_:_`},
         op p1_ to getState,
-        op p2_ to getNodeSet,
-        sort Tuple{Term,NodeSet} to State&Formulas) .
+        op p2_ to getAndFormulas,
+        sort Tuple{Term,AndFormulas} to State&Formulas) .
 endfm
 
 view SF from TRIV to STATE-FORMULAS is
@@ -358,17 +380,29 @@ endv
 fmod STATE-FORMULAS-SET is
     pr SET{SF} * (sort NeSet{SF} to NeSFSet, sort Set{SF} to SFSet, op empty : -> Set{SF} to emptySFS) .
     
+    vars AF AF' : AndFormulas .
+    vars SF : State&Formulas .
     vars TS1 TS2 : TermSet .
     vars NS NS' : NodeSet .
-    vars SFS : SFSet .
-    vars T T' : Term .
+    vars SFS SFS' : SFSet .
+    vars NeSFS : NeSFSet .
+    vars T : Term .
+    
+    --- merge & simplify a set of states & formulas at each intermediate layer
+    op merge  : SFSet SFSet          -> SFSet .
+    op merge* : SFSet State&Formulas -> SFSet .
+    
+    eq merge(NeSFS, (SF, SFS')) = merge(merge*(NeSFS, SF), SFS') .
+    eq merge(emptySFS, SFS') = SFS' .
+    eq merge(SFS, emptySFS) = SFS .
 
-    --- simplify a set of states & formulas at each intermediate layer
-    op simplifySFS : SFSet -> SFSet .
-    eq simplifySFS(({T : {TS1}}, {T : {TS1 | TS2}}, SFS)) 
-    = simplifySFS(({T : {TS1 | TS2}}, SFS)) .
-    eq simplifySFS(({T : NS}, {T : (NS, NS')}, SFS)) = simplifySFS(({T : NS}, SFS)) .
-    eq simplifySFS(SFS) = SFS [owise] .
+    eq merge*(({T : AF}, SFS), {T : AF'}) = {T : simplifyAF((AF, AF'))}, SFS .
+    eq merge*(SFS, SF) = SF, SFS [owise] .
+
+    op simplifyAF : AndFormulas -> AndFormulas .
+    eq simplifyAF(([ { TS1 } ], [ { TS1 | TS2 } ], AF)) = simplifyAF(([ { TS1 | TS2 } ], AF)) .
+    eq simplifyAF(([ NS ], [ NS, NS' ], AF)) = simplifyAF(([ NS ], AF)) .
+    eq simplifyAF(AF) = AF [owise] .
 endfm
 
 view SFSet from TRIV to STATE-FORMULAS-SET is
@@ -482,6 +516,7 @@ fmod DATABASE-EXT is
     pr DATABASE .
     pr MAP{Nat,Nat} * ( sort Map{Nat,Nat} to NatToNat ) .
     
+    vars AF : AndFormulas .
     vars TS TS' : TermSet .
     vars N2N : NatToNat .
     vars NL : NatList .
@@ -495,16 +530,19 @@ fmod DATABASE-EXT is
     op analyze  : SFSet          -> NatToNat .
     op analyze* : SFSet NatToNat -> NatToNat .
     eq analyze(SFS) = analyze*(SFS, empty) .
-    ceq analyze*(({ T : NS }, SFS), N2N) =  if $hasMapping(N2N, N) then 
-                                                analyze*(SFS, insert(N, N2N[N] + 1, N2N))
-                                            else
-                                                analyze*(SFS, insert(N, 1, N2N))
-                                            fi
+    ceq analyze*(({ T : ([NS], AF) }, SFS), N2N) 
+    =   if $hasMapping(N2N, N) then 
+            analyze*(({ T : ([NS], AF) }, SFS), insert(N, N2N[N] + 1, N2N))
+        else
+            analyze*(({ T : ([NS], AF) }, SFS), insert(N, 1, N2N))
+        fi
     if N := | NS | .
+    eq analyze*(({ T : emptyAF }, SFS), N2N) = analyze*(SFS, N2N) .
     eq analyze*(emptySFS, N2N) = N2N .
 
     op analyzeF : SFSet -> NodeSet .
-    eq analyzeF(({ T : NS }, SFS)) = NS, analyzeF(SFS) .
+    eq analyzeF(({ T : ([ NS ], AF) }, SFS)) = NS, analyzeF(({ T : AF }, SFS)) .
+    eq analyzeF(({ T : emptyAF }, SFS)) = analyzeF(SFS) .
     eq analyzeF(emptySFS) = empty .
     
     op qid : ResultType -> Type .

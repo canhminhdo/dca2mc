@@ -1,15 +1,14 @@
 #!/bin/zsh
 time maude << EOF
 load debug.maude .
-load specs/tas.maude
+load specs/qlock.maude
 load dca2mc
-initialize[TAS-CHECK, init, lofree]
-set-cores 2
+initialize[QLOCK-CHECK, init, lofree]
 layerCheck 2 2
 lastCheck
 q
 EOF
 
-# initialize[TAS-CHECK, init, lofree]
-# initialize[TAS-CHECK, init, cstable]
-# initialize[TAS-CHECK, init, halt]
+# initialize[QLOCK-CHECK, init, halt]
+# initialize[QLOCK-CHECK, init, lofree]
+# initialize[QLOCK-CHECK, init, cstable]

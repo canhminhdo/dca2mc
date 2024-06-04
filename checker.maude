@@ -9,6 +9,7 @@ fmod DCA2MC-CHECKER is
     vars NS NS' NS'' : NodeSet .
     vars SF : State&Formulas .
     vars TLL : TermListList .
+    vars AF : AndFormulas .
     vars RT : ResultType .
     vars N2ID : NodeToId .
     vars ID2N : IdToNode .
@@ -37,16 +38,17 @@ fmod DCA2MC-CHECKER is
                                                 if RT == satisfied then 
                                                     < satisfied | emptySFS >
                                                 else 
-                                                    collect(M, TB, VAR, simplifySFS(SFS'), NL) 
+                                                    collect(M, TB, VAR, SFS', NL) 
                                                 fi
                                             fi
     if < RT | SFS' > := layerCheck(M, TB, VAR, SFS, N) .
     eq collect(M, TB, VAR, SFS, nil) = < unknown | SFS > .
     
     --- layer check for a depth with BFS
-    op layerCheck   : Module Tableau Term SFSet Nat         -> Result4Checking .
-    op layerCheck*  : Module Tableau Term SFSet Nat SFSet   -> Result4Checking .
-    op layerCheck** : Module Tableau Term State&Formulas    -> Result4Checking .
+    op layerCheck   : Module Tableau Term SFSet Nat            -> Result4Checking .
+    op layerCheck*  : Module Tableau Term SFSet Nat SFSet      -> Result4Checking .
+    op layerCheck** : Module Tableau Term State&Formulas SFSet -> Result4Checking .
+    op layerCheck$$ : Module Tableau Term Term NodeSet         -> Result4Checking .
     
     ceq layerCheck(M, TB, VAR, SFS, N) = layerCheck*(M, TB, VAR, SFS, N, emptySFS) 
     if N > 0 .
@@ -58,40 +60,57 @@ fmod DCA2MC-CHECKER is
                                                             if RT == satisfied then
                                                                 layerCheck*(M, TB, VAR, SFS, N, SFS')
                                                             else
-                                                                layerCheck*(M, TB, VAR, SFS, N, (SFS', SFS''))
+                                                                layerCheck*(M, TB, VAR, SFS, N, merge(SFS', SFS''))
                                                             fi
                                                         fi
-    if < RT | SFS'' > := layerCheck**(M, TB, VAR, SF) .
+    if < RT | SFS'' > := layerCheck**(M, TB, VAR, SF, emptySFS) .
     eq layerCheck*(M, TB, VAR, emptySFS, N, SFS') = if SFS' == emptySFS then
                                                         < satisfied | emptySFS >
                                                     else
                                                         layerCheck(M, TB, VAR, SFS', sd(N, 1))
                                                     fi .
 
-    ceq layerCheck**(M, TB, VAR, { T : NS }) =  if RT == unstatisfied then
-                                                    < unstatisfied | emptySFS >
-                                                else
-                                                    if RT == satisfied then
-                                                        < satisfied | emptySFS >
-                                                    else
-                                                        if TS == emptyTermSet then
-                                                            < unstatisfied | emptySFS >
+    ceq layerCheck**(M, TB, VAR, { T : ([ NS ], AF) }, SFS) =   if RT == unstatisfied then
+                                                                    < unstatisfied | emptySFS >
+                                                                else
+                                                                    if RT == satisfied then
+                                                                        layerCheck**(M, TB, VAR, { T : AF }, SFS)
+                                                                    else
+                                                                        layerCheck**(M, TB, VAR, { T : AF }, merge(SFS, SFS'))
+                                                                    fi
+                                                                fi
+    if < RT | SFS' > := layerCheck$$(M, TB, VAR, T, NS) .
+    eq layerCheck**(M, TB, VAR, { T : emptyAF }, SFS) = if SFS == emptySFS then
+                                                            < satisfied | emptySFS >
                                                         else
-                                                            < unknown | buildSFS(TS, NS') >
-                                                        fi
+                                                            < unknown | SFS >
+                                                        fi .
+
+    ceq layerCheck$$(M, TB, VAR, T, NS) =   if RT == unstatisfied then
+                                                < unstatisfied | emptySFS >
+                                            else
+                                                if RT == satisfied then
+                                                    < satisfied | emptySFS >
+                                                else
+                                                    if TS == emptyTermSet then
+                                                        < unstatisfied | emptySFS >
+                                                    else
+                                                        < unknown | buildSFS(TS, NS') >
                                                     fi
                                                 fi
+                                            fi
     if < RT | NS' > := tryEval(M, TB, T, NS)
     /\ TS := getAllSuccessors(M, T, VAR) .
 
     op buildSFS : TermSet NodeSet -> SFSet .
-    eq buildSFS(T | TS, NS) = { T : NS }, buildSFS(TS, NS) .
+    eq buildSFS(T | TS, NS) = { T : [ NS ] }, buildSFS(TS, NS) .
     eq buildSFS(emptyTermSet, NS) = emptySFS .
 
     --- layerCheck with all paths generated in advance
-    --- op layerCheck   : Module Tableau Term SFSet Nat          -> Result4Checking .
-    --- op layerCheck*  : Module Tableau Term SFSet Nat SFSet    -> Result4Checking .
-    --- op layerCheck** : Module Tableau Term State&Formulas Nat -> Result4Checking .
+    --- op layerCheck   : Module Tableau Term SFSet Nat                -> Result4Checking .
+    --- op layerCheck*  : Module Tableau Term SFSet Nat SFSet          -> Result4Checking .
+    --- op layerCheck** : Module Tableau Term State&Formulas Nat SFSet -> Result4Checking .
+    --- op layerCheck$$ : Module Tableau Term Term NodeSet Nat         -> Result4Checking .
     --- eq layerCheck(M, TB, VAR, SFS, N) = layerCheck*(M, TB, VAR, SFS, N, emptySFS) .
     --- ceq layerCheck*(M, TB, VAR, (SF, SFS), N, SFS') =   if RT == unstatisfied then
     ---                                                         < unstatisfied | emptySFS >
@@ -99,16 +118,33 @@ fmod DCA2MC-CHECKER is
     ---                                                         if RT == satisfied then
     ---                                                             layerCheck*(M, TB, VAR, SFS, N, SFS')
     ---                                                         else
-    ---                                                             layerCheck*(M, TB, VAR, SFS, N, (SFS', SFS'')) 
+    ---                                                             layerCheck*(M, TB, VAR, SFS, N, merge(SFS', SFS'')) 
     ---                                                         fi
     ---                                                     fi
-    --- if < RT | SFS'' > := layerCheck**(M, TB, VAR, SF, N) .
+    --- if < RT | SFS'' > := layerCheck**(M, TB, VAR, SF, N, emptySFS) .
     --- eq layerCheck*(M, TB, VAR, emptySFS, N, SFS) =  if SFS == emptySFS then
     ---                                                     < satisfied | emptySFS >
     ---                                                 else < unknown | SFS > fi .
 
+    --- ceq layerCheck**(M, TB, VAR, { T : ([NS], AF) }, N, SFS) =  if RT == unstatisfied then
+    ---                                                                 < unstatisfied | emptySFS >
+    ---                                                             else
+    ---                                                                 if RT == satisfied then
+    ---                                                                     layerCheck**(M, TB, VAR, { T : AF }, N, SFS)
+    ---                                                                 else
+    ---                                                                     layerCheck**(M, TB, VAR, { T : AF }, N, merge(SFS, SFS'))
+    ---                                                                 fi
+    ---                                                             fi
+    --- if < RT | SFS' > := layerCheck$$(M, TB, VAR, T, NS, N) .
+
+    --- eq layerCheck**(M, TB, VAR, { T : emptyAF }, N, SFS) =  if SFS == emptySFS then
+    ---                                                             < satisfied | emptySFS >
+    ---                                                         else
+    ---                                                             < unknown | SFS >
+    ---                                                         fi .
+
     --- --- Nd is a set of formulas { T1 | T2 | ... }
-    --- ceq layerCheck**(M, TB, VAR, { T : NS }, N) = layerCheckPaths(M, TB, TLL, NS, emptySFS)
+    --- ceq layerCheck$$(M, TB, VAR, T, NS, N) = layerCheckPaths(M, TB, TLL, NS, emptySFS)
     --- if TLL := genSeqs(M, T, VAR, N) .
 
     --- --- check all paths with NS
@@ -119,7 +155,7 @@ fmod DCA2MC-CHECKER is
     ---                                                 if RT == satisfied then
     ---                                                     layerCheckPaths(M, TB, TLL, NS, SFS)
     ---                                                 else
-    ---                                                     layerCheckPaths(M, TB, TLL, NS, (SFS', SFS))
+    ---                                                     layerCheckPaths(M, TB, TLL, NS, merge(SFS, SFS'))
     ---                                                 fi
     ---                                             fi
     --- if < RT | SFS' > := layerCheckPath(M, TB, TL, NS) .
@@ -138,7 +174,7 @@ fmod DCA2MC-CHECKER is
     ---                                                 fi
     ---                                             fi
     --- if < RT | NS' > := tryEval(M, TB, T1, NS) .
-    --- eq layerCheckPath(M, TB, T, NS) = < unknown | { T : NS } > .
+    --- eq layerCheckPath(M, TB, T, NS) = < unknown | { T : [ NS ] } > .
 
     --- check whether M, T |= literals(Nd)
     op checkNode : Module Term Node -> Bool .
@@ -198,18 +234,28 @@ fmod DCA2MC-CHECKER is
     ********************************************************
     *** FOR FINAL LAYER                                  ***
     ********************************************************
-    op errBool               :                     -> [Bool] .
-    op lastLayerCheck        : Module SFSet        -> Bool .
-    op lastLayerCheckNodeSet : Module Term NodeSet -> Bool .
-    op lastLayerCheckNode    : Module Term Node    -> Bool .
+    op errBool               :                       -> [Bool] .
+    op lastLayerCheck        : Module SFSet          -> Bool .
+    op lastLayerCheckSF      : Module State&Formulas -> Bool .
+    op lastLayerCheckNodeSet : Module Term NodeSet   -> Bool .
+    op lastLayerCheckNode    : Module Term Node      -> Bool .
 
-    ceq lastLayerCheck(M, ({T : NS}, SFS)) = if B then 
-                                                lastLayerCheck(M, SFS)
-                                             else 
-                                                false 
-                                             fi 
-    if B := lastLayerCheckNodeSet(M, T, NS) .
+    ceq lastLayerCheck(M, (SF, SFS)) =  if B then 
+                                            lastLayerCheck(M, SFS)
+                                        else 
+                                            false
+                                        fi 
+    if B := lastLayerCheckSF(M, SF) .
     eq lastLayerCheck(M, emptySFS) = true .
+
+
+    ceq lastLayerCheckSF(M, {T : ([NS], AF)}) = if B then
+                                                    lastLayerCheckSF(M, {T : AF})
+                                                else
+                                                    false
+                                                fi
+    if B := lastLayerCheckNodeSet(M, T, NS) .
+    eq lastLayerCheckSF(M, {T : emptyAF}) = true .
     
     ceq lastLayerCheckNodeSet(M, T, (Nd, NS)) = if B then 
                                                     true 

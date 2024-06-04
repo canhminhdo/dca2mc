@@ -64,7 +64,7 @@ mod DCA2MC-PROCESSING is
         (depthList: nil),
         (currentDepth: 0),
         (tableau: TB),
-        (sfSet: ({T3 : getInitNode(TB)})),
+        (sfSet: ({T3 : [ getInitNode(TB) ]})),
         (result: unknown)
     } 
     if TB := buildTableau(T4) .

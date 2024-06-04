@@ -9,7 +9,7 @@ For the final layer, we conduct model checking experiments for each state and it
 
 - `initialize[_,_,_]` initialize the application with a system module ID, an initial state, and an LTL formula as a desired property for model checking as inputs.
 
-- `set-cores _` uses parallelization with a nonzero number of cores `_` (e.g., 8).
+<!-- - `set-cores _` uses parallelization with a nonzero number of cores `_` (e.g., 8). -->
 
 - `layerCheck _` generates states and formulas with a layer configuration `_`, that is a list of nonzero natural numbers (e.g., 2 2).
 
@@ -21,27 +21,27 @@ For the final layer, we conduct model checking experiments for each state and it
 
 - `help` shows the command instructions.
 
-- `exit` quits the application
+- `q` exits the application
 
 ## 2. A case study with `DCA2MC`
 
-Let us show how to conduct a model checking expeirment for TAS protocol with `DCA2MC`.
+Let us show how to conduct a model checking expeirment for Qlock protocol with `DCA2MC`.
 
 **Step 1:** Start the application with the following commands:
 
 ```
-load specs/tas.maude
+load specs/qlock.maude
 maude dca2mc.maude
 ```
-We first load the formal specification of the TAS protocol in Maude and then load our support tool via the `dca2mc.maude` file.
+We first load the formal specification of the Qlock protocol in Maude and then load our support tool via the `dca2mc.maude` file.
 
-**Step 2:** Initialize the application to model check that TAS enjoys a desired property.
+**Step 2:** Initialize the application to model check that Qlock enjoys a desired property.
 
 ```
-initialize[TAS-CHECK, init, lofree]
+initialize[QLOCK-CHECK, init, lofree]
 ```
 
-where `TAS-CHECK` is the system module ID, `init` is the initial state, and `lofree` is the desired property.
+where `QLOCK-CHECK` is the system module ID, `init` is the initial state, and `lofree` is the desired property.
 
 **Step 3:** Use parallelization for `DCA2MC`.
 
@@ -62,7 +62,7 @@ where `2 2` is the layer configuration denoting the first and second layer depth
 ```
 lastCheck
 ```
-This command will return `true` if TAS enjoys the desired property; otherwise, `false` is returned.
+This command will return `true` if Qlock enjoys the desired property; otherwise, `false` is returned.
 
 **Step 6:** Quit the application.
 

@@ -96,7 +96,7 @@ mod DCA2MC-IO is
 
     rl [quit] :
         < O : X@Class | state: execComm, input: 'q.@Command@, Atts >
-    =>  < O : X@Class | state: quit, input: empty, Atts > .
+    =>  < O : X@Class | state: cleanup, input: empty, Atts > .
 
     rl [cleanup] :
         < O : X@Class | state: cleanup, Atts >

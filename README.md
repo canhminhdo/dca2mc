@@ -2,7 +2,7 @@
 This repository presents a support tool called `DCA2MC` for the tableau-based approach to model checking linear temporal properties.
 
 The core idea is to split the original model checking problem into smaller model checking problems and tackle each smaller one. We creatively use the tableau-based method to perform the division. For each intermediate layer, we need to collect states and formulas that should be satisfied by the states located at the beginning of the next layer.
-For the final layer, we conduct model checking experiments for each state and its formulas.
+For the final layer, we conduct model checking experiments for each state and its formulas independently.
 
 ## 1. How to use `DCA2MC`
 `DCA2MC` provides an interactive mode for users with the following commands, where `_` denotes the arguments for the commands.
@@ -21,7 +21,7 @@ For the final layer, we conduct model checking experiments for each state and it
 
 - `help` shows the command instructions.
 
-- `q` exits the application
+- `q` exits the application.
 
 ## 2. A case study with `DCA2MC`
 
@@ -33,7 +33,7 @@ Let us show how to conduct a model checking expeirment for Qlock protocol with `
 load specs/qlock.maude
 maude dca2mc.maude
 ```
-We first load the formal specification of the Qlock protocol in Maude and then load our support tool via the `dca2mc.maude` file.
+We first load the formal specification of Qlock protocol in Maude and then load our support tool via the `dca2mc.maude` file.
 
 **Step 2:** Initialize the application to model check that Qlock enjoys a desired property.
 
@@ -41,30 +41,30 @@ We first load the formal specification of the Qlock protocol in Maude and then l
 initialize[QLOCK-CHECK, init, lofree]
 ```
 
-where `QLOCK-CHECK` is the system module ID, `init` is the initial state, and `lofree` is the desired property.
+where `QLOCK-CHECK` is the system module ID, `init` is the initial state, and `lofree` is the desired property under verification.
 
-**Step 3:** Use parallelization for `DCA2MC`.
+<!-- **Step 3:** Use parallelization for `DCA2MC`.
 
 ```
 set-cores 8
-```
+``` -->
 
-**Step 4:** Conduct model checking experiments for intermediate layers.
+**Step 3:** Conduct model checking experiments for intermediate layers.
 
 ```
 layerCheck 2 2
 ```
 
-where `2 2` is the layer configuration denoting the first and second layer depths are 2 and 2, respectively.
+where `2 2` is the layer configuration denoting the first and second layer depths 2 and 2, respectively.
 
-**Step 5:** Conduct model checking experiments for the final layer.
+**Step 4:** Conduct model checking experiments for the final layer.
 
 ```
 lastCheck
 ```
 This command will return `true` if Qlock enjoys the desired property; otherwise, `false` is returned.
 
-**Step 6:** Quit the application.
+**Step 5:** Exit the application.
 
 ```
 q

@@ -8,7 +8,7 @@ fmod DCA2MC-SIGN is
     op analyze                  :                          -> @Command@ .
     op check_                   : @Bubble@                 -> @Command@ .
     op help                     :                          -> @Command@ .
-    op q                        :                          -> @Command@ .
+    op quit                     :                          -> @Command@ .
     op set-cores_               : @Token@                  -> @Command@ .
 endfm
 

@@ -15,7 +15,7 @@ fmod DCA2MC-BANNER is
         "\n     check _ \t\t generates states and their formulas with a layer configuration _ and model checks for the final layer" +
         "\n     analyze \t\t shows the current state with some information from the application for debugging" +
         "\n     help \t\t shows the command instructions" +
-        "\n     q \t\t\t quits the application\n\n" .
+        "\n     quit \t\t exits the application\n\n" .
 endfm
 
 mod DCA2MC-IO is
@@ -95,7 +95,7 @@ mod DCA2MC-IO is
     if RP? := metaParse(DCA2MC-GRAMMAR, tokenize(S), '@Input@) .
 
     rl [quit] :
-        < O : X@Class | state: execComm, input: 'q.@Command@, Atts >
+        < O : X@Class | state: execComm, input: 'quit.@Command@, Atts >
     =>  < O : X@Class | state: cleanup, input: empty, Atts > .
 
     rl [cleanup] :

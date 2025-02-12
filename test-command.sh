@@ -4,9 +4,10 @@ load debug.maude .
 load specs/qlock.maude
 load dca2mc
 initialize[QLOCK-CHECK, init, lofree]
+set-cores 4
 layerCheck 2 2
 lastCheck
-q
+quit
 EOF
 
 # initialize[QLOCK-CHECK, init, halt]

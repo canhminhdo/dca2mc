@@ -13,7 +13,7 @@ fmod DCA2MC-BANNER is
         "\n     layerCheck _ \t generates states and their formulas with a layer configuration _ (e.g., 2 2)" +
         "\n     lastCheck \t\t model checks for the final layer" +
         "\n     check _ \t\t generates states and their formulas with a layer configuration _ and model checks for the final layer" +
-        "\n     analyze \t\t shows the current state with some information from the application for debugging" +
+        "\n     analyze \t\t shows some information from the current application for debugging" +
         "\n     help \t\t shows the command instructions" +
         "\n     quit \t\t exits the application\n\n" .
 endfm
@@ -93,6 +93,17 @@ mod DCA2MC-IO is
             write(stdout, O, "Cannot parse the command\n")
         fi
     if RP? := metaParse(DCA2MC-GRAMMAR, tokenize(S), '@Input@) .
+
+    rl [help] :
+        < O : X@Class |
+            input: ('help.@Command@),
+            state: execComm,
+            Atts >
+    =>  < O : X@Class |
+            input: empty,
+            state: print,
+            Atts >
+        write(stdout, O, banner) .
 
     rl [quit] :
         < O : X@Class | state: execComm, input: 'quit.@Command@, Atts >

@@ -11,6 +11,30 @@ mod DCA2MC-HANDLING is
     vars QIL : QidList .
     vars O : Oid .
     
+    --- handle uninitialize database
+    op isValidCmd : Term -> Bool .
+    eq isValidCmd('check_[T]) = true .
+    eq isValidCmd('layerCheck_[T]) = true .
+    eq isValidCmd('lastCheck.@Command@) = true .
+    eq isValidCmd('set-cores_[T]) = true .
+    eq isValidCmd('analyze.@Command@) = true .
+    eq isValidCmd('quit.@Command@) = true .
+    eq isValidCmd('help.@Command@) = true .
+    eq isValidCmd(T) = false [owise] .
+
+    crl < O : X@Class |
+            db: DB,
+            input: T,
+            state: execComm,
+            Atts >
+    =>  < O : X@Class |
+            db: DB,
+            input: (empty),
+            state: print,
+            Atts >
+        write(stdout, O, printTokens('\r 'Error: '\o 'cannot 'find 'initialization. '\n))
+    if isValidCmd(T) /\ isEmptyDB(DB) .
+
     --- initialize command
     crl [initialize] :
         < O : X@Class |
@@ -27,28 +51,6 @@ mod DCA2MC-HANDLING is
             Atts >
         write(stdout, O, printTokens(QIL))
     if << DB' ; QIL >> := procInitializeCommand('initialize`[_`,_`,_`][T, T1, T2], DB) .
-
-    --- handle uninitialize database
-    op isValidCmd : Term -> Bool .
-    eq isValidCmd('check_[T]) = true .
-    eq isValidCmd('layerCheck_[T]) = true .
-    eq isValidCmd('lastCheck.@Command@) = true .
-    eq isValidCmd('set-cores_[T]) = true .
-    eq isValidCmd('analyze.@Command@) = true .
-    eq isValidCmd(T) = false [owise] .
-
-    crl < O : X@Class |
-            db: DB,
-            input: T,
-            state: execComm,
-            Atts >
-    =>  < O : X@Class |
-            db: DB,
-            input: (empty),
-            state: print,
-            Atts >
-        write(stdout, O, printTokens('\r 'Error: '\o 'cannot 'find 'initialization. '\n))
-    if isValidCmd(T) /\ isEmptyDB(DB) .
 
     --- layerCheck command
     crl [layerCheck] :
@@ -123,18 +125,4 @@ mod DCA2MC-HANDLING is
         write(stdout, O, printTokens(QIL))
     if not isEmptyDB(DB)
     /\ QIL := procAnalyzeCommand('analyze.@Command@, DB) .
-    
-    --- help command
-    rl [help] :
-        < O : X@Class |
-            db: DB,
-            input: ('help.@Command@),
-            state: execComm,
-            Atts >
-    =>  < O : X@Class |
-            db: DB,
-            input: empty,
-            state: print,
-            Atts >
-        write(stdout, O, banner) .
 endm

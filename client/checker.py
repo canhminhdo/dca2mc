@@ -19,6 +19,8 @@ SPEC_TEMP_FILE = f"specs/{NAME}.pml.tmp"
 HOST = 'localhost'
 PORT = 8811
 
+COUNT = 0
+
 # create a folder for the session
 subprocess.run(["mkdir", "-p", FOLDER])
 
@@ -28,7 +30,6 @@ maude.load('qlock-loader.maude')
 qlock = maude.getModule('QLOCK-DB')
 
 def modelCheck(sf, n):
-    global COUNT
     queue = qlock.parseTerm(f"getQueue(downTerm(getState({sf}), errState))")
     queue.reduce()
     pc = []
@@ -113,10 +114,12 @@ def connectionSetup():
             buffer += data.decode('utf-8')
             sf, buffer = buffer.split('#', 1)
             res = modelCheck(sf, PROCS)
+            COUNT += 1
             # Send a response to the server
             client_socket.send((str(res) + "#").encode('utf-8'))
             print(f"[Sent] {res}")
-        
+            print(f"Processed {COUNT} items")
+
     except Exception as e:
         print(f"Error: {e}")
     finally:

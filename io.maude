@@ -3,13 +3,15 @@ fmod DCA2MC-BANNER is
 
     op banner : -> String .
     eq banner = 
-        "\n\n\t\t A Tableau-based Approach to Model Checking Linear Temporal Properties\n" +
-        "\t\t DCA2MC Version 0.1 (May 19 2023)\n" +
-        "\t\t Copyright(c) 2023, JAIST\n" +
+        "\n\n\t\t A Scalable Divide & Conquer Approach to Model Checking Linear Temporal Properties\n" +
+        "\t\t DCA2MC Version 1.0 (Feb 18 2025)\n" +
+        "\t\t Copyright(c) 2025, Ogata Laboratory - JAIST\n" +
         "\t\t All rights reserved. \n" +
         "\n Commands:" + 
         "\n     initialize[_,_,_] \t initializes the application with a system module ID, an initial state, and an LT formula for model checking as inputs" +
-        "\n     set-cores _ \t uses parallelization with a nonzero number of cores _ (e.g., 8)" +
+        "\n     set-checker _ \t use an external model checker _ (e.g., spin)" +
+        "\n     set-cores _ \t uses parallelization with a nonzero number of cores for the default model checker _ (e.g., 8)" +
+        "\n     set-checker-cores _ \t uses parallelization with a nonzero number of cores _ for the external model checker (e.g., 8)" +
         "\n     layerCheck _ \t generates states and their formulas with a layer configuration _ (e.g., 2 2)" +
         "\n     lastCheck \t\t model checks for the final layer" +
         "\n     check _ \t\t generates states and their formulas with a layer configuration _ and model checks for the final layer" +
@@ -49,9 +51,15 @@ mod DCA2MC-IO is
     op working        : -> State [ctor] .
     op waiting        : -> State [ctor] .
     op checking       : -> State [ctor] .
-    op terminating      : -> State [ctor] .
+    op terminating1   : -> State [ctor] .
+    op terminating2   : -> State [ctor] .
     op print&checking : -> State [ctor] .
-
+    --- for external model checker
+    op initChecker          : -> State [ctor] .
+    op waitChecker          : -> State [ctor] .
+    op closeListener         : -> State [ctor] .
+    op closeCheckers        : -> State [ctor] .
+    
     --- attributes
     op db:_    : Database -> Attribute [ctor] .
     op state:_ : State    -> Attribute [ctor] .
@@ -64,6 +72,11 @@ mod DCA2MC-IO is
     op jobs:_       : SFSet         -> Attribute [ctor] .
     op res:_        : ResultType    -> Attribute [ctor] .
     op depth:_      : Nat           -> Attribute [ctor] .
+    --- for external model checkers
+    op checker:_        : Qid           -> Attribute [ctor] .
+    op checker-cores:_  : Nat           -> Attribute [ctor] .
+    op exWorkers:_      : Queue{Worker} -> Attribute [ctor] .
+    op listener:_       : Oid           -> Attribute [ctor] .
 
     rl [init] :
        < O : X@Class | state: init, Atts >
@@ -107,7 +120,7 @@ mod DCA2MC-IO is
 
     rl [quit] :
         < O : X@Class | state: execComm, input: 'quit.@Command@, Atts >
-    =>  < O : X@Class | state: cleanup, input: empty, Atts > .
+    =>  < O : X@Class | state: quit, input: empty, Atts > .
 
     rl [cleanup] :
         < O : X@Class | state: cleanup, Atts >

@@ -52,8 +52,11 @@ mod JOB-HANDLING is
     eq handleJobByWorkers(O, empty) = none .
 endm
 
+load handling-checker.maude .
+
 mod DCA2MC-HANDLING-PARALLEL is
     pr JOB-HANDLING .
+    pr DCA2MC-HANDLING-CHECKER .
 
     vars W2J : Map{Worker,SFSet} .
     vars W W1 W2 : Queue{Worker} .
@@ -275,12 +278,14 @@ mod DCA2MC-HANDLING-PARALLEL is
     crl [lastCheck] :
         < O : X@Class |
             db: DB,
+            checker: 'maude,
             input: ('lastCheck.@Command@),
             state: execComm,
             cores: N,
             Atts >
     =>  < O : X@Class |
             db: evalDB(DB, (sfSet: emptySFS)),
+            checker: 'maude,
             input: empty,
             state: checking,
             cores: N,
@@ -293,12 +298,14 @@ mod DCA2MC-HANDLING-PARALLEL is
     
     rl [HandleJob] :
         < O : X@Class |
+            checker: 'maude,
             state: checking,
             workers: (MI | W),
             jobs: (SF, SFS),
             res: unknown,
             Atts >
     =>  < O : X@Class |
+            checker: 'maude,
             state: checking,
             workers: W,
             jobs: SFS,
@@ -315,13 +322,15 @@ mod DCA2MC-HANDLING-PARALLEL is
     crl [Result4Job] :
         < O : X@Class |
             db: DB,
+            checker: 'maude,
             state: checking,
             workers: W,
             res: RT,
             Atts >
         reducedTerm(O, MI, N, T, Ty)
     =>  < O : X@Class |
-            db: (if B then DB else evalDB(DB, (result: unstatisfied)) fi),
+            db: DB,
+            checker: 'maude,
             state: checking,
             workers: (MI | W),
             res: (if B then RT else unstatisfied fi),
@@ -334,6 +343,7 @@ mod DCA2MC-HANDLING-PARALLEL is
     crl [lastCheckDone?] :
         < O : X@Class |
             db: DB,
+            checker: 'maude,
             state: checking,
             workers: W,
             cores: N,
@@ -342,18 +352,20 @@ mod DCA2MC-HANDLING-PARALLEL is
             jobs: SFS,
             Atts >
     =>  < O : X@Class |
-            db: DB,
+            db: evalDB(DB, (result: unstatisfied)),
+            checker: 'maude,
             state: quit,
             workers: W,
             cores: N,
             Atts >
         write(stdout, O, printTokens('\r 'Par-LastCheck ': '\s '\o 'failure '\n))
-    if qsize(W) == N 
+    if qsize(W) == N
     [print "[lastCheckDone?]"] .
 
     crl [lastCheckDone] :
         < O : X@Class |
             db: DB,
+            checker: 'maude,
             state: checking,
             workers: W,
             cores: N,
@@ -363,6 +375,7 @@ mod DCA2MC-HANDLING-PARALLEL is
             Atts >
     =>  < O : X@Class |
             db: evalDB(DB, (result: satisfied)),
+            checker: 'maude,
             state: quit,
             workers: W,
             cores: N,
@@ -378,14 +391,16 @@ mod DCA2MC-HANDLING-PARALLEL is
             input: ('check_[T]),
             state: execComm,
             cores: N,
+            checker-cores: N',
             Atts >
     =>  < O : X@Class |
             db: DB,
             input: ('layerCheck_[T], 'lastCheck.@Command@),
             state: execComm,
             cores: N,
+            checker-cores: N',
             Atts >
-    if N > 0
+    if (N > 0 or-else N' > 0)
     /\ not isEmptyDB(DB) .
 
     --- set-cores command
@@ -434,7 +449,7 @@ mod DCA2MC-HANDLING-PARALLEL is
             (loading[MI]: false),
             (pending[MI]: prelude fullmaude dca2mc),
             Atts >
-        [print "[CreatedWorker]"] .
+    [print "[CreatedWorker]"] .
 
     rl [LoadingModule] : 
         < O : X@Class |
@@ -546,43 +561,56 @@ mod DCA2MC-HANDLING-PARALLEL is
             workers: W,
             Atts >
         write(stdout, O, printTokens('\b 'Set 'cores: '\s '\o 'success 'with qid(N) 'meta-interpreters '\n))
-    if qsize(W) == N [print "[SetupDone]"] .
+    if qsize(W) == N 
+    [print "[SetupDone]"] .
+
+    --- close Interpreters --- empty case
+    rl [CloseInterpreters] : 
+        < O : X@Class |
+            state: quit,
+            cores: 0,
+            Atts >
+    =>  < O : X@Class |
+            state: closeCheckers,
+            cores: 0,
+            Atts > .
 
     --- stoping workers
-    crl [StopWorkers] : 
+    crl [CloseInterpreters] : 
         < O : X@Class |
             state: quit,
             cores: N,
             workers: W,
             Atts >
     =>  < O : X@Class |
-            state: terminating,
+            state: terminating1,
             cores: N,
             workers: W,
             Atts >
         produceQuitMsg(O, W)
     if N > 0
-    /\ qsize(W) == N [print "[StopWorkers]"] .
+    /\ qsize(W) == N 
+    [print "[CloseInterpreters]"] .
 
     rl [Bye] : 
         < O : X@Class |
-            state: terminating,
+            state: terminating1,
             workers: (MI | W),
             Atts >
         bye(O, MI)
     =>  < O : X@Class |
-            state: terminating,
+            state: terminating1,
             workers: W, 
             Atts >
         [print "[Bye]"] .
 
     rl [ByeDone] : 
         < O : X@Class |
-            state: terminating,
+            state: terminating1,
             workers: emptyq,
             Atts >
     =>  < O : X@Class |
-            state: cleanup,
+            state: closeCheckers,
             workers: emptyq,
             Atts >
     [print "[ByeDone]"] .

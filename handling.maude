@@ -20,6 +20,7 @@ mod DCA2MC-HANDLING is
     eq isValidCmd('analyze.@Command@) = true .
     eq isValidCmd('quit.@Command@) = true .
     eq isValidCmd('help.@Command@) = true .
+    --- eq isValidCmd('set-checker_[T]) = true .
     eq isValidCmd(T) = false [owise] .
 
     crl < O : X@Class |
@@ -78,12 +79,14 @@ mod DCA2MC-HANDLING is
             input: ('lastCheck.@Command@),
             state: execComm,
             cores: 0,
+            checker: 'maude,
             Atts >
     =>  < O : X@Class |
             db: DB',
             input: empty,
             state: print,
             cores: 0,
+            checker: 'maude,
             Atts >
         write(stdout, O, printTokens(QIL))
     if not isEmptyDB(DB)
@@ -114,13 +117,11 @@ mod DCA2MC-HANDLING is
             db: DB,
             input: ('analyze.@Command@),
             state: execComm,
-            cores: 0,
             Atts >
     =>  < O : X@Class |
             db: DB,
             input: empty,
             state: print,
-            cores: 0,
             Atts >
         write(stdout, O, printTokens(QIL))
     if not isEmptyDB(DB)

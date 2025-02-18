@@ -3,6 +3,8 @@ time maude << EOF
 load debug.maude .
 load specs/qlock.maude
 load dca2mc
+set-checker spin
+set-checker-cores 4
 initialize[QLOCK-CHECK, init, lofree]
 set-cores 4
 layerCheck 2 2

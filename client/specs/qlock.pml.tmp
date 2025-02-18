@@ -1,0 +1,45 @@
+#define N   <procs>	/* number of processes */
+
+mtype = {ss, ws, cs, fs};
+mtype pc[N] = ss;
+int cnt = N;
+chan queue = [N] of { int };
+
+init {
+    atomic {
+        <init>
+        int idx = 0;
+        do 
+        :: (idx < N) -> 
+            run proc(idx);
+            idx++;
+        :: else -> break;
+        od
+    }
+}
+
+proctype proc(int idx)
+{
+    do
+	:: atomic {
+        pc[idx] == ss ->
+        pc[idx] = ws;
+        queue!idx;
+    }
+    :: atomic {
+        pc[idx] == ws; queue?<eval(idx)>; ->
+        pc[idx] = cs;
+    }
+    :: atomic {
+        pc[idx] == cs ->
+        queue?_;
+        pc[idx] = fs;
+        cnt--;
+    }
+    :: cnt == 0 ->
+        break;
+    od
+    assert(cnt == 0);
+}
+
+ltl lofree { <formula> }

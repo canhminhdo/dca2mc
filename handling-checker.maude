@@ -1,0 +1,289 @@
+load buffered-socket.maude
+
+mod DCA2MC-HANDLING-CHECKER is
+    pr JOB-HANDLING .
+    pr BUFFERED-SOCKET .
+    pr DECL-META-PRETTY-PRINT .
+
+    vars O LISTENER CLIENT MI : Oid .
+    vars W W1 W2 : Queue{Worker} .
+    vars Atts : AttributeSet .
+    vars SF : State&Formulas .
+    vars DB DB' : Database .
+    vars T T' T1 T2 : Term .
+    vars IP DATA : String .
+    vars SFS SFS' : SFSet .
+    vars Ty : ResultType .
+    vars X@Class : Cid .
+    vars QIL : QidList .
+    vars QI QI' : Qid .
+    vars N N' : Nat .
+
+    op isValidChecker : Qid -> Bool .
+    eq isValidChecker('spin) = true .
+    eq isValidChecker('maude) = true .
+    eq isValidChecker(QI) = false .
+    
+    --- set model checker for the final layer
+    crl [set-checker] :
+        < O : X@Class |
+            input: ('set-checker_[T]),
+            state: execComm,
+            checker: QI,
+            Atts >
+    =>  < O : X@Class |
+            input: empty,
+            state: print,
+            checker: (if isValidChecker(QI') then QI' else QI fi),
+            Atts >
+        if isValidChecker(QI') then
+            write(stdout, O, printTokens('\b 'Set 'checker: '\s '\o 'success 'to QI' '\n))
+        else
+            write(stdout, O, printTokens('\r 'Error: '\s '\o 'failed 'to 'set 'checker 'to QI' '\n))
+        fi
+    if QI' := downQid(solveBubbleAndToken(T)) 
+    /\ isValidChecker(QI') .
+
+    --- set-checker-cores command
+    crl [setCheckerCores] :
+        < O : X@Class |
+            input: ('set-checker-cores_[T]),
+            checker: 'spin,
+            state: execComm,
+            checker-cores: N,
+            Atts >
+    =>  < O : X@Class |
+            checker: 'spin,
+            input: empty,
+            state: (if N' >= 1 then initChecker else print fi),
+            checker-cores: N',
+            Atts >
+            (if (N' >= 1) then 
+                CreateServerTcpSocket(socketManager, O, 8811, N' + 2)
+            else 
+                write(stdout, O, printTokens('\b 'Set 'checker 'cores: '\s '\o 'success 'with qid(N') '\n))
+            fi)
+    if T' := getTerm(
+                metaParse(
+                    upModule('NAT, false),
+                    downQidList(solveBubbleAndToken(T)),
+                    'Nat
+                )
+            )
+    /\ N' := downTerm(T', 1) .
+    
+    rl [CreatedSocket] :
+        < O : X@Class | 
+            state: initChecker, 
+            Atts > 
+            CreatedSocket(O, socketManager, LISTENER)
+    =>  < O : X@Class | 
+            state: waitChecker,
+            listener: LISTENER, 
+            Atts >
+        AcceptClient(LISTENER, O) 
+    [print "[CreatedSocket]"] .
+
+    rl [AcceptedClient] :
+        < O : X@Class |
+            state: waitChecker,
+            exWorkers: W,
+            checker-cores: N,
+            Atts > 
+            AcceptedClient(O, LISTENER, IP, CLIENT)
+    =>  < O : X@Class |
+            state: waitChecker,
+            exWorkers: (CLIENT | W),
+            checker-cores: N,
+            Atts >
+            Receive(CLIENT, O)
+            if N == qsize(CLIENT | W) then none else AcceptClient(LISTENER, O) fi
+    [print "[AcceptedClient] " CLIENT] .
+
+    crl [setCheckerCoresDone] :
+        < O : X@Class |
+            state: waitChecker,
+            exWorkers: W,
+            checker-cores: N,
+            Atts > 
+    =>  < O : X@Class |
+            state: print,
+            exWorkers: W,
+            checker-cores: N,
+            Atts >
+            write(stdout, O, printTokens('\b 'Set 'checker 'cores: '\s '\o 'success 'with qid(N) 'checkers '\n))
+    if qsize(W) == N .
+
+    --- lastCheck command with external model checker
+    crl [lastCheck] :
+        < O : X@Class |
+            db: DB,
+            checker: 'spin,
+            input: ('lastCheck.@Command@),
+            state: execComm,
+            Atts >
+    =>  < O : X@Class |
+            db: evalDB(DB, (sfSet: emptySFS)),
+            checker: 'spin,
+            input: empty,
+            state: checking,
+            --- initialize internal data
+            jobs: getSfSet(DB),
+            res: getResult(DB),
+            Atts >
+    if not isEmptyDB(DB) .
+
+    rl [HandleJob] :
+        < O : X@Class |
+            checker: 'spin,
+            state: checking,
+            exWorkers: (MI | W),
+            jobs: (SF, SFS),
+            res: unknown,
+            Atts >
+    =>  < O : X@Class |
+            checker: 'spin,
+            state: checking,
+            exWorkers: W,
+            jobs: SFS,
+            res: unknown,
+            Atts >
+        Send(MI, O, printTokens(eMetaPrettyPrint(upModule('DATABASE, false), upTerm(SF))))
+    [print "[HandleJob] " MI] .
+
+    rl [Sent] : 
+        < O : X@Class | Atts > Sent(O, MI)
+    =>  < O : X@Class | Atts > 
+    [print "[Sent] " MI] .
+
+    rl [JobResult] :
+        < O : X@Class |
+            checker: 'spin,
+            state: checking,
+            exWorkers: W,
+            res: unknown,
+            Atts >
+        Received(O, MI, DATA)
+    =>  < O : X@Class |
+            checker: 'spin,
+            state: checking,
+            exWorkers: (MI | W),
+            res: (if DATA == "False" then unstatisfied else unknown fi),
+            Atts >
+    [print "[JobResult] " DATA] .
+
+    crl [lastCheckDone?] :
+        < O : X@Class |
+            db: DB,
+            checker: 'spin,
+            state: checking,
+            exWorkers: W,
+            checker-cores: N,
+            --- clean internal data
+            res: unstatisfied,
+            jobs: SFS,
+            Atts >
+    =>  < O : X@Class |
+            db: evalDB(DB, (result: unstatisfied)),
+            checker: 'spin,
+            state: quit,
+            exWorkers: W,
+            checker-cores: N,
+            Atts >
+        write(stdout, O, printTokens('\r 'Par-LastCheck ': '\s '\o 'failure '\n))
+    if qsize(W) == N 
+    [print "[lastCheckDone?]"] .
+
+    crl [lastCheckDone] :
+        < O : X@Class |
+            db: DB,
+            checker: 'spin,
+            state: checking,
+            exWorkers: W,
+            checker-cores: N,
+            --- clean internal data
+            res: unknown,
+            jobs: emptySFS,
+            Atts >
+    =>  < O : X@Class |
+            db: evalDB(DB, (result: satisfied)),
+            checker: 'spin,
+            state: quit,
+            exWorkers: W,
+            checker-cores: N,
+            Atts >
+        write(stdout, O, printTokens('\b 'Par-LastCheck ': '\s '\o 'success '\n))
+    if qsize(W) == N 
+    [print "[lastCheckDone]"] .
+
+    --- close Checkers - empty case
+    rl [CloseCheckers] : 
+        < O : X@Class |
+            state: closeCheckers,
+            checker-cores: 0,
+            Atts >
+    =>  < O : X@Class |
+            state: cleanup,
+            checker-cores: 0,
+            Atts > .
+
+    --- close checkers
+    crl [CloseCheckers] : 
+        < O : X@Class |
+            checker: 'spin,
+            state: closeCheckers,
+            checker-cores: N,
+            exWorkers: W,
+            Atts >
+    =>  < O : X@Class |
+            checker: 'spin,
+            state: terminating2,
+            checker-cores: N,
+            exWorkers: W,
+            Atts >
+        produceCloseSocketMsg(O, W)
+    if N > 0
+    /\ qsize(W) == N 
+    [print "[CloseCheckers]"] .
+
+    rl [ClosedSocket] : 
+        < O : X@Class |
+            state: terminating2,
+            exWorkers: (MI | W),
+            Atts >
+        ClosedSocket(O, MI, DATA)
+    =>  < O : X@Class |
+            state: terminating2,
+            exWorkers: W, 
+            Atts >
+    [print "[ClosedSocket] " MI] .
+
+    rl [CloseServer] : 
+        < O : X@Class |
+            state: terminating2,
+            exWorkers: emptyq,
+            listener: LISTENER,
+            Atts >
+    =>  < O : X@Class |
+            state: closeListener,
+            exWorkers: emptyq,
+            listener: LISTENER,
+            Atts >
+        CloseSocket(LISTENER, O)
+    [print "[CloseServer]"] .
+
+    rl [ClosedServer] : 
+        < O : X@Class |
+            state: closeListener,
+            Atts >
+        ClosedSocket(O, MI, DATA)
+    =>  < O : X@Class |
+            state: cleanup,
+            Atts >
+        [print "[ClosedServer] " MI "\n[CloseDone]"] .
+
+    *** close all client sockets
+    op produceCloseSocketMsg : Oid Queue{Worker} -> Configuration .
+    eq produceCloseSocketMsg(O, (MI | W)) = CloseSocket(MI, O) produceCloseSocketMsg(O, W) .
+    eq produceCloseSocketMsg(O, emptyq) = none .
+endm

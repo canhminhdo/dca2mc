@@ -41,7 +41,6 @@ def modelCheck(sf, n):
     cnt = qlock.parseTerm(f"getCnt(downTerm(getState({sf}), errState))")
     cnt.reduce()
     print(f"[Handling] queue: {queue}, pc: {pc}, cnt: {cnt}")
-
     # prepare specification
     file = open(SPEC_TEMP_FILE, "r", encoding="utf-8")
     content = file.read()
@@ -62,7 +61,7 @@ def modelCheck(sf, n):
         idx = int(ele.replace("p", ""))
         init += f"\n\t\tqueue!{idx - 1};"
     content = content.replace("<init>", init)
-
+    
     # preapre the formula
     formulas = qlock.parseTerm(f"AFL2Json(getAndFormulas({sf}))")
     formulas.reduce()
@@ -98,6 +97,7 @@ def modelCheck(sf, n):
     return flag
 
 def connectionSetup():
+    global COUNT
     # Create a socket object
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     buffer = ""
@@ -117,8 +117,7 @@ def connectionSetup():
             COUNT += 1
             # Send a response to the server
             client_socket.send((str(res) + "#").encode('utf-8'))
-            print(f"[Sent] {res}")
-            print(f"Processed {COUNT} items")
+            print(f"[Sent] {res} - {COUNT} items")
 
     except Exception as e:
         print(f"Error: {e}")

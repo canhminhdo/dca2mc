@@ -7,5 +7,5 @@ experiments
 solver
 test-command-*
 log
-
+.venv
 

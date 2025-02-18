@@ -55,11 +55,11 @@ def modelCheck(sf, n):
         init += f"\n\t\tpc[{i}] = {p};"
     elements = []
     if str(queue) != "empq":
-        elements = str(queue).split(" ")
+        elements = str(queue).split(" | ")
 
     for ele in elements:
         idx = int(ele.replace("p", ""))
-        init += f"\n\t\tqueue!{i - 1};"
+        init += f"\n\t\tqueue!{idx - 1};"
     content = content.replace("<init>", init)
 
     # preapre the formula

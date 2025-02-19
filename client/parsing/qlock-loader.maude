@@ -1,0 +1,54 @@
+load ../../specs/qlock.maude
+load ../../full-maude-lite.maude
+load ../../database.maude
+
+mod QLOCK-DB is
+    pr QLOCK .
+    pr DATABASE-JSON .
+
+    --- op sf : -> State&Formulas .
+    --- eq sf = { '`{_`} ['__ ['queue:_ ['p1.Pid ],'cnt:_ ['s_ ['0.Zero ]],'pc`[_`]:_ ['p1.Pid ,'ws.Loc ],'pc`[_`]:_ ['p2.Pid ,'fs.Loc ]]]: [{ ('_R_ ['False.FalseFormula ,'_\/_ ['~_ ['inWs1.Prop ],'_U_ ['True.TrueFormula ,'inCs1.Prop ]]]) | ('_U_ ['True.TrueFormula ,'inCs1.Prop ])}]} .
+
+    var OCs : Soup{OComp} .
+    var Q : Queue{Pid} .
+    var N :  Nat .
+    var I : Pid .
+    var L : Loc .
+
+    op errState : -> Config .
+
+    op getQueue : Config -> Queue{Pid} .
+    eq getQueue({(queue: Q) OCs}) = Q .
+    
+    op getLoc : Config Pid -> Loc .
+    eq getLoc({(pc[I]: L) OCs}, I) = L .
+    
+    op getCnt : Config -> Nat .
+    eq getCnt({(cnt: N) OCs}) = N .
+endm
+
+eof
+
+set print attribute on .
+
+red sf .
+red getState(sf) .
+red getAndFormulas(sf) .
+red downTerm(getState(sf), errState) .
+red getCnt(downTerm(getState(sf), errState)) .
+red getQueue(downTerm(getState(sf), errState)) .
+red getLoc(downTerm(getState(sf), errState), p1) .
+red getLoc(downTerm(getState(sf), errState), p2) .
+red init .
+red AFL2Json(getAndFormulas(sf)) .
+
+eof
+
+[
+    [
+        [
+            "(true) U (pc[p1] == cs)", 
+            "[] ((!(pc[p1] == ws)) \\/ ((true) U (pc[p1] == cs)))"
+        ]
+    ]
+]

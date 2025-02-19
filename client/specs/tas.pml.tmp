@@ -1,0 +1,45 @@
+#define N	<procs>	/* number of processes */
+
+mtype = {ss, ws, cs, fs};
+mtype pc[N] = ss;
+bool locked = false;
+int cnt = N;
+
+init {
+    atomic {
+        <init>
+        int idx = 0;
+        do 
+        :: (idx < N) -> 
+            run proc(idx);
+            idx++;
+        :: else -> break;
+        od
+    }
+}
+
+proctype proc(int idx)
+{
+    do
+	:: atomic {
+        pc[idx] == ss ->
+        pc[idx] = ws;
+    }
+    :: atomic {
+        pc[idx] == ws && locked == false ->
+        pc[idx] = cs;
+        locked = true;
+    }
+    :: atomic {
+        pc[idx] == cs ->
+        pc[idx] = fs;
+        cnt--;
+        locked = false;
+    }
+    :: cnt == 0 ->
+        break;
+    od
+    assert(cnt == 0);
+}
+
+ltl lofree { <formula> }

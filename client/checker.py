@@ -5,8 +5,9 @@ import maude
 import json
 import sys
 
-# setup for Qlock
-NAME = "qlock"
+# setup the protocol under verification
+TAS_PROG, QLOCK_PROG, ANDERSON_PROG, MCS_PROG = ["tas", "qlock", "anderson", "mcs"]
+NAME = QLOCK_PROG
 PROCS = 2
 if len(sys.argv) > 1:
     SESS = sys.argv[1]
@@ -19,6 +20,7 @@ SPEC_TEMP_FILE = f"specs/{NAME}.pml.tmp"
 HOST = 'localhost'
 PORT = 8811
 
+# processed items
 COUNT = 0
 
 # create a folder for the session
@@ -26,44 +28,39 @@ subprocess.run(["mkdir", "-p", FOLDER])
 
 # load the Maude module
 maude.init()
-maude.load('qlock-loader.maude')
-qlock = maude.getModule('QLOCK-DB')
+if NAME == TAS_PROG:
+    from parsing.tas import buildInit
+    maude.load('parsing/tas-loader.maude')
+    prog = maude.getModule('TAS-DB')
+elif NAME == QLOCK_PROG:
+    from parsing.qlock import buildInit
+    maude.load('parsing/qlock-loader.maude')
+    prog = maude.getModule('QLOCK-DB')
+elif NAME == ANDERSON_PROG:
+    from parsing.anderson import buildInit
+    maude.load('parsing/anderson-loader.maude')
+    prog = maude.getModule('ANDERSON-DB')
+elif NAME == MCS_PROG:
+    from parsing.mcs import buildInit
+    maude.load('parsing/mcs-loader.maude')
+    prog = maude.getModule('MCS-DB')
 
 def modelCheck(sf, n):
-    queue = qlock.parseTerm(f"getQueue(downTerm(getState({sf}), errState))")
-    queue.reduce()
-    pc = []
-    for i in range(n):
-        p = qlock.parseTerm(f"getLoc(downTerm(getState({sf}), errState), p{i + 1})")
-        p.reduce()
-        pc.append(p)
-
-    cnt = qlock.parseTerm(f"getCnt(downTerm(getState({sf}), errState))")
-    cnt.reduce()
-    print(f"[Handling] queue: {queue}, pc: {pc}, cnt: {cnt}")
     # prepare specification
     file = open(SPEC_TEMP_FILE, "r", encoding="utf-8")
     content = file.read()
+    file.close()
     
     # prepare the number of processes
     content = content.replace("<procs>", str(n))
-    # prepare initialization for processes
-    init = f"cnt = {cnt};"
-    for i in range(n):
-        p = qlock.parseTerm(f"getLoc(downTerm(getState({sf}), errState), p{i + 1})")
-        p.reduce()
-        init += f"\n\t\tpc[{i}] = {p};"
-    elements = []
-    if str(queue) != "empq":
-        elements = str(queue).split(" | ")
 
-    for ele in elements:
-        idx = int(ele.replace("p", ""))
-        init += f"\n\t\tqueue!{idx - 1};"
+    # prepare initialization for processes
+    init = buildInit(prog, sf, n)
+    # print(f"[Init] {init}")
     content = content.replace("<init>", init)
     
     # preapre the formula
-    formulas = qlock.parseTerm(f"AFL2Json(getAndFormulas({sf}))")
+    formulas = prog.parseTerm(f"AFL2Json(getAndFormulas({sf}))")
     formulas.reduce()
     JsonFLs = json.loads(str(formulas))
     # print(JsonFLs)
@@ -87,6 +84,7 @@ def modelCheck(sf, n):
                 if "errors: 0" not in result.stdout:
                     orFLRes = False
                     print(result.stdout)
+                # print(result.stdout)
                 # subprocess.run("rm -rf " + f"{FOLDER}/*", shell=True)
             if orFLRes :
                 andFLRes = True
@@ -125,11 +123,6 @@ def connectionSetup():
         client_socket.close()
         print("Connection closed")
         subprocess.run("rm -rf " + FOLDER, shell=True)
-
-# modelCheck(
-#     r"{ '`{_`} ['__ ['queue:_ ['p1.Pid ],'cnt:_ ['s_ ['0.Zero ]],'pc`[_`]:_ ['p1.Pid ,'ws.Loc ],'pc`[_`]:_ ['p2.Pid ,'fs.Loc ]]]: [{ ('_R_ ['False.FalseFormula ,'_\/_ ['~_ ['inWs1.Prop ],'_U_ ['True.TrueFormula ,'inCs1.Prop ]]]) | ('_U_ ['True.TrueFormula ,'inCs1.Prop ])}]}",
-#     2
-# )
 
 if __name__ == "__main__":
     connectionSetup()

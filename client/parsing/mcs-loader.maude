@@ -1,0 +1,70 @@
+load ../../specs/mcs.maude
+load ../../full-maude-lite.maude
+load ../../database.maude
+
+mod MCS-DB is
+    pr MCS .
+    pr DATABASE-JSON .
+
+    --- op sf : -> State&Formulas .
+    --- eq sf = { '`{_`} ['__ ['cnt:_ ['s_^2 ['0.Zero ]],'glock:_ ['nop.Pid ],'lock`[_`]:_ ['p1.Pid ,'false.Bool ],'lock`[_`]:_ ['p2.Pid ,'false.Bool ],'next`[_`]:_ ['p1.Pid ,'nop.Pid ],'next`[_`]:_ ['p2.Pid ,'nop.Pid ],'pc`[_`]:_ ['p1.Pid ,'l2.Label ],'pc`[_`]:_ ['p2.Pid ,'l2.Label ],'pred`[_`]:_ ['p1.Pid ,'nop.Pid ],'pred`[_`]:_ ['p2.Pid ,'nop.Pid ]]]: [{ '_R_ ['False.FalseFormula ,'_\/_ ['~_ ['inWs1.Prop ],'_U_ ['True.TrueFormula ,'inCs1.Prop ]]]}]} .
+
+    var OCs : Soup{OComp} .
+    var TS : TermSet .
+    var N :  Nat .
+    var I J : Pid .
+    var L : Label .
+    var B : Bool .
+
+    op errState : -> Config .
+    
+    op getProcs : Config -> Nat .
+    eq getProcs({(pc[I]: L) OCs}) = getProcs({OCs}) + 1 .
+    eq getProcs({OCs}) = 0 [owise] .
+
+    op pid2int : Config Pid -> Nat .
+    eq pid2int({OCs}, p1) = 0 .
+    eq pid2int({OCs}, p2) = 1 .
+    eq pid2int({OCs}, p3) = 2 .
+    eq pid2int({OCs}, p4) = 3 .
+    eq pid2int({OCs}, p5) = 4 .
+    eq pid2int({OCs}, p6) = 5 .
+    eq pid2int({OCs}, nop) = getProcs({OCs}) .
+
+    op getGlock : Config -> Nat .
+    eq getGlock({(glock: I) OCs}) = pid2int({OCs}, I) .
+
+    op getNext : Config Pid -> Nat .
+    eq getNext({(next[I]: J) OCs}, I) = pid2int({OCs}, J) .
+
+    op getLock : Config Pid -> Bool .
+    eq getLock({(lock[I]: B) OCs}, I) = B .
+    
+    op getPred : Config Pid -> Nat .
+    eq getPred({(pred[I]: J) OCs}, I) = pid2int({OCs}, J) .
+    
+    op getLoc : Config Pid -> Label .
+    eq getLoc({(pc[I]: L) OCs}, I) = L .
+    
+    op getCnt : Config -> Nat .
+    eq getCnt({(cnt: N) OCs}) = N .
+endm
+
+eof
+
+red sf .
+red getState(sf) .
+red getAndFormulas(sf) .
+red downTerm(getState(sf), errState) .
+red getCnt(downTerm(getState(sf), errState)) .
+red getGlock(downTerm(getState(sf), errState)) .
+red getNext(downTerm(getState(sf), errState), p1) .
+red getNext(downTerm(getState(sf), errState), p2) .
+red getLock(downTerm(getState(sf), errState), p1) .
+red getLock(downTerm(getState(sf), errState), p2) .
+red getPred(downTerm(getState(sf), errState), p1) .
+red getPred(downTerm(getState(sf), errState), p2) .
+red getLoc(downTerm(getState(sf), errState), p1) .
+red getLoc(downTerm(getState(sf), errState), p2) .
+red init .
+red AFL2Json(getAndFormulas(sf)) .

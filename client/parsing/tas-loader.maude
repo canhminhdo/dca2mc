@@ -1,0 +1,41 @@
+load ../../specs/tas.maude
+load ../../full-maude-lite.maude
+load ../../database.maude
+
+mod TAS-DB is
+    pr TAS .
+    pr DATABASE-JSON .
+
+    --- op sf : -> State&Formulas .
+    --- eq sf = { '`{_`} ['__ ['cnt:_ ['s_ ['0.Zero ]],'locked:_ ['false.Bool ],'pc`[_`]:_ ['p1.Pid ,'fs.Loc ],'pc`[_`]:_ ['p2.Pid ,'ws.Loc ]]]: [{ '_R_ ['False.FalseFormula ,'_\/_ ['~_ ['inWs1.Prop ],'_U_ ['True.TrueFormula ,'inCs1.Prop ]]]}]} .
+
+    var OCs : Soup{OComp} .
+    var TS : TermSet .
+    var N :  Nat .
+    var I : Pid .
+    var L : Loc .
+    var B : Bool .
+
+    op errState : -> Config .
+    
+    op getLock : Config -> Bool .
+    eq getLock({(locked: B) OCs}) = B .
+    
+    op getLoc : Config Pid -> Loc .
+    eq getLoc({(pc[I]: L) OCs}, I) = L .
+    
+    op getCnt : Config -> Nat .
+    eq getCnt({(cnt: N) OCs}) = N .
+endm
+
+eof
+
+set print attribute on .
+
+red sf .
+red getState(sf) .
+red getAndFormulas(sf) .
+red downTerm(getState(sf), errState) .
+red getLock(downTerm(getState(sf), errState)) .
+red init .
+red AFL2Json(getAndFormulas(sf)) .

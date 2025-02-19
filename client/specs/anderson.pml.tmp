@@ -1,0 +1,57 @@
+#define N   <procs>	/* number of processes */
+
+mtype = {rs, ws, cs, fs};
+mtype pc[N] = rs;
+int place[N] = 0;
+bool array[N] = false;
+int next = 0;
+int cnt = N;
+
+init {
+    atomic {
+        <init>
+        int idx = 0;
+        do 
+        :: (idx < N) -> 
+            run proc(idx);
+            idx++;
+        :: else -> break;
+        od
+    }
+}
+
+proctype proc(int idx)
+{
+    atomic {
+        if
+        :: idx == 0 ->
+            array[idx] = true;
+        :: else ->
+            skip;
+        fi
+    }
+    do
+	:: atomic {
+        pc[idx] == rs ->
+        pc[idx] = ws;
+        place[idx] = next;
+        next = (next + 1) % N;
+    }
+    :: atomic {
+        pc[idx] == ws && array[place[idx]] == true ->
+        pc[idx] = cs;
+    }
+    :: atomic {
+        pc[idx] == cs ->
+        pc[idx] = fs;
+        array[place[idx]] = false;
+        array[(place[idx] + 1) % N] = true;
+        cnt--;
+    }
+    :: cnt == 0 ->
+        break;
+    od
+    assert(cnt == 0);
+}
+
+ltl lofree { <formula> }

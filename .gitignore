@@ -8,4 +8,4 @@ solver
 test-command-*
 log
 .venv
-
+__pycache__

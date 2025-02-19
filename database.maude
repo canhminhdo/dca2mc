@@ -378,14 +378,17 @@ view SF from TRIV to STATE-FORMULAS is
 endv
 
 fmod STATE-FORMULAS-SET is
+    pr RANDOM .
     pr SET{SF} * (sort NeSet{SF} to NeSFSet, sort Set{SF} to SFSet, op empty : -> Set{SF} to emptySFS) .
     
+    vars SFS SFS' SFS'' : SFSet .
     vars AF AF' : AndFormulas .
     vars SF : State&Formulas .
     vars TS1 TS2 : TermSet .
     vars NS NS' : NodeSet .
-    vars SFS SFS' : SFSet .
     vars NeSFS : NeSFSet .
+    vars N C SEED : Nat .
+    vars Nz : NzNat .
     vars T : Term .
     
     --- merge & simplify a set of states & formulas at each intermediate layer
@@ -403,6 +406,26 @@ fmod STATE-FORMULAS-SET is
     eq simplifyAF(([ { TS1 } ], [ { TS1 | TS2 } ], AF)) = simplifyAF(([ { TS1 | TS2 } ], AF)) .
     eq simplifyAF(([ NS ], [ NS, NS' ], AF)) = simplifyAF(([ NS ], AF)) .
     eq simplifyAF(AF) = AF [owise] .
+
+    --- randomly select some SFs from SFSet
+    op randOneSF : NeSFSet Nat -> SFSet .
+    ceq randOneSF(NeSFS, SEED) = getSFByIdx(NeSFS, (random(SEED) rem C))
+    if C := | NeSFS | .
+    
+    op getSFByIdx : SFSet Nat -> SFSet .
+    eq getSFByIdx((SF, SFS), N) = if N > 0 then getSFByIdx(SFS, sd(N, 1)) else SF fi .
+
+    sort SFSet&Seed .
+    
+    op <_:_> : SFSet Nat -> SFSet&Seed .
+    op selectSFS : SFSet Nat Nat -> SFSet&Seed .
+    eq selectSFS(SFS, N, SEED) = pickSFS(SFS, N, SEED, emptySFS) .
+    
+    op pickSFS : SFSet Nat Nat SFSet -> SFSet&Seed .
+    eq pickSFS(emptySFS, N, SEED, SFS) = < SFS : SEED > .
+    eq pickSFS(SFS, 0, SEED, SFS') = < SFS' : SEED > .
+    ceq pickSFS(NeSFS, Nz, SEED, SFS') = pickSFS((NeSFS \ SFS''), sd(Nz, 1), SEED + 1, (SFS', SFS''))
+    if SFS'' := randOneSF(NeSFS, SEED) .
 endfm
 
 view SFSet from TRIV to STATE-FORMULAS-SET is

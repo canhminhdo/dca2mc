@@ -12,6 +12,8 @@ lastCheck
 quit
 EOF
 
+# set-seed 0
+# select 5
 # initialize[QLOCK-CHECK, init, halt]
 # initialize[QLOCK-CHECK, init, lofree]
 # initialize[QLOCK-CHECK, init, cstable]

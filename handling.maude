@@ -3,10 +3,12 @@ mod DCA2MC-HANDLING is
     pr DCA2MC-PARSING .
     pr DCA2MC-IO .
 
+    vars N N' SEED SEED' : Nat .
     vars Atts : AttributeSet .
     vars DB DB' : Database .
+    vars T T' T1 T2 : Term .
+    vars SFS SFS' : SFSet .
     vars Ty : ResultType .
-    vars T T1 T2 : Term .
     vars X@Class : Cid .
     vars QIL : QidList .
     vars O : Oid .
@@ -17,6 +19,7 @@ mod DCA2MC-HANDLING is
     eq isValidCmd('layerCheck_[T]) = true .
     eq isValidCmd('lastCheck.@Command@) = true .
     eq isValidCmd('set-cores_[T]) = true .
+    eq isValidCmd('select_[T]) = true .
     eq isValidCmd('analyze.@Command@) = true .
     eq isValidCmd('quit.@Command@) = true .
     eq isValidCmd('help.@Command@) = true .
@@ -126,4 +129,54 @@ mod DCA2MC-HANDLING is
         write(stdout, O, printTokens(QIL))
     if not isEmptyDB(DB)
     /\ QIL := procAnalyzeCommand('analyze.@Command@, DB) .
+
+    --- select command
+    crl [select] :
+        < O : X@Class |
+            db: DB,
+            input: ('select_[T]),
+            state: execComm,
+            seed: SEED,
+            Atts >
+    =>  < O : X@Class |
+            db: evalDB(DB, (sfSet: SFS')),
+            input: empty,
+            state: print,
+            seed: SEED',
+            Atts >
+        write(stdout, O, printTokens('\b 'Select: '\s '\o 'success 'with qid(N') 'items 'and 'current 'seed qid(SEED') '\n))
+    if not isEmptyDB(DB)
+    /\ T' := getTerm(
+                metaParse(
+                    upModule('NAT, false),
+                    downQidList(solveBubbleAndToken(T)),
+                    'Nat
+                )
+            )
+    /\ N := downTerm(T', 0)
+    /\ SFS := getSfSet(DB)
+    /\ < SFS' : SEED' >  := selectSFS(SFS, N, SEED) 
+    /\ N' := | SFS' | .
+
+    --- set-seed command
+    crl [setSeed] :
+        < O : X@Class |
+            input: ('set-seed_[T]),
+            state: execComm,
+            seed: SEED,
+            Atts >
+    =>  < O : X@Class |
+            input: empty,
+            state: print,
+            seed: SEED',
+            Atts >
+            write(stdout, O, printTokens('\b 'Set 'seed: '\s '\o 'success 'to qid(SEED') '\n))
+    if T' := getTerm(
+                metaParse(
+                    upModule('NAT, false),
+                    downQidList(solveBubbleAndToken(T)),
+                    'Nat
+                )
+            )
+    /\ SEED' := downTerm(T', 0) .
 endm

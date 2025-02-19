@@ -78,6 +78,7 @@ mod DCA2MC-IO is
     op exWorkers:_      : Queue{Worker} -> Attribute [ctor] .
     op listener:_       : Oid           -> Attribute [ctor] .
     op port:_           : Nat           -> Attribute [ctor] .
+    op seed:_           : Nat           -> Attribute [ctor] .
 
     rl [init] :
        < O : X@Class | state: init, Atts >

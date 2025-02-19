@@ -21,7 +21,8 @@ mod DCA2MC is
 
     --- initial value for attributes
     op initAtts : -> AttributeSet .
-    eq initAtts = db: emptyDB, state: init, input: empty, cores: 0, workers: emptyq, checker: 'maude, checker-cores: 0, exWorkers: emptyq .
+    eq initAtts = db: emptyDB, state: init, input: empty, cores: 0, workers: emptyq, 
+                  checker: 'maude, checker-cores: 0, exWorkers: emptyq, port: 8811 .
 
     op run : -> Configuration [ctor] .
     eq run = <> < o : DCA2MC | initAtts > .

@@ -17,7 +17,7 @@ mod DCA2MC-HANDLING-CHECKER is
     vars X@Class : Cid .
     vars QIL : QidList .
     vars QI QI' : Qid .
-    vars N N' : Nat .
+    vars N N' P : Nat .
 
     op isValidChecker : Qid -> Bool .
     eq isValidChecker('spin) = true .
@@ -51,15 +51,17 @@ mod DCA2MC-HANDLING-CHECKER is
             checker: 'spin,
             state: execComm,
             checker-cores: N,
+            port: P,
             Atts >
     =>  < O : X@Class |
             checker: 'spin,
             input: empty,
             state: (if N' >= 1 then initChecker else print fi),
             checker-cores: N',
+            port: P,
             Atts >
             (if (N' >= 1) then 
-                CreateServerTcpSocket(socketManager, O, 8811, N' + 2)
+                CreateServerTcpSocket(socketManager, O, P, N' + 2)
             else 
                 write(stdout, O, printTokens('\b 'Set 'checker 'cores: '\s '\o 'success 'with qid(N') '\n))
             fi)

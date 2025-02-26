@@ -7,8 +7,8 @@ import sys
 
 # setup the protocol under verification
 TAS_PROG, QLOCK_PROG, ANDERSON_PROG, MCS_PROG = ["tas", "qlock", "anderson", "mcs"]
-NAME = ANDERSON_PROG
-PROCS = 9
+NAME = QLOCK_PROG
+PROCS = 2
 if len(sys.argv) > 1:
     SESS = sys.argv[1]
 else:
@@ -109,8 +109,9 @@ def connectionSetup():
             data = client_socket.recv(1024)
             if not data:
                 break
-            buffer += data.decode('utf-8')
-            if (buffer.find('#') == -1):
+            new_data = data.decode('utf-8')
+            buffer += new_data
+            if new_data.find('#') == -1:
                 continue;
             sf, buffer = buffer.split('#', 1)
             res = modelCheck(sf, PROCS)

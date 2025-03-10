@@ -119,6 +119,8 @@ def connectionSetup():
             # Send a response to the server
             client_socket.send((str(res) + "#").encode('utf-8'))
             print(f"[Sent] {res} - {COUNT} items")
+            if not res:
+                break
 
     except Exception as e:
         print(f"Error: {e}")

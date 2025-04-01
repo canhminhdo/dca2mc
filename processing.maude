@@ -106,7 +106,8 @@ mod DCA2MC-PROCESSING is
                 fi) >> 
     if M := getModule(DB)
     /\ SFS := getSfSet(DB)
-    /\ B := lastLayerCheck(M, SFS) 
+    --- /\ B := lastLayerCheck(M, SFS)
+    /\ B := lastLayerCheckDebug(M, SFS)
     /\ DB' := evalDB(DB, ((sfSet: emptySFS), (result: (if B then satisfied else unstatisfied fi)))) .
 
     *** check command

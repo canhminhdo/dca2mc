@@ -15,13 +15,13 @@ fmod DCA2MC-CHECKER is
     vars ID2N : IdToNode .
     vars Ty : NodeType .
     vars TL : TermList .
+    vars N N1 N2 : Nat .
     vars NL : NatList .
     vars TB : Tableau .
     vars TS : TermSet .
     vars M : Module .
     vars Nd : Node .
     vars B : Bool .
-    vars N : Nat .
     
     ********************************************************
     *** FOR INTERMEDIATE LAYERS                          ***
@@ -240,6 +240,19 @@ fmod DCA2MC-CHECKER is
     op lastLayerCheckNodeSet : Module Term NodeSet   -> Bool .
     op lastLayerCheckNode    : Module Term Node      -> Bool .
 
+    --- lastCheck with debug information
+    op lastLayerCheckDebug   : Module SFSet          -> Bool .
+    op lastLayerCheckDebug   : Module SFSet Nat Nat  -> Bool .
+    eq lastLayerCheckDebug(M, SFS) = lastLayerCheckDebug(M, SFS, | SFS |, 1) .
+    ceq lastLayerCheckDebug(M, (SF, SFS), N1, N2) = if B then
+                                                        lastLayerCheckDebug(M, SFS, N1, N2 + 1)
+                                                    else
+                                                        false
+                                                    fi
+    if B := lastLayerCheckSF(M, SF) [print N2 "/" N1] .
+    eq lastLayerCheckDebug(M, emptySFS, N1, N2) = true .
+
+    --- lastCheck without debug information
     ceq lastLayerCheck(M, (SF, SFS)) =  if B then 
                                             lastLayerCheck(M, SFS)
                                         else 

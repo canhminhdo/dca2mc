@@ -12,3 +12,4 @@ services:
         stdin_open: true
         tty: true
         mem_limit: 2G
+        # memswap_limit: 2G

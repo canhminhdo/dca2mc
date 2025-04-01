@@ -249,7 +249,8 @@ fmod DCA2MC-CHECKER is
                                                     else
                                                         false
                                                     fi
-    if B := lastLayerCheckSF(M, SF) [print N2 "/" N1] .
+    if B := lastLayerCheckSF(M, SF)
+    /\ N := (N2 * 100) quo N1 [print N2 "/" N1 "\tapprox.\t" N "%"] .
     eq lastLayerCheckDebug(M, emptySFS, N1, N2) = true .
 
     --- lastCheck without debug information

@@ -43,13 +43,16 @@ fmod CONFIG is
     pr SOUP{OComp} .
     sort Config .
     op {_} : Soup{OComp} -> Config [ctor] .
-    ops init init5 init8 init9 init10 : -> Config .
+    ops init init5 init7 init8 init9 init10 : -> Config .
     eq init = {(pc[p1]: rs) (pc[p2]: rs)
             (ticket[p1]: 0) (ticket[p2]: 0)
             (next: 0) (serve: 0) (cnt: 2)} .
     eq init5 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs)
             (ticket[p1]: 0) (ticket[p2]: 0) (ticket[p3]: 0) (ticket[p4]: 0) (ticket[p5]: 0)
             (next: 0) (serve: 0) (cnt: 5)} .
+    eq init7 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs) (pc[p6]: rs) (pc[p7]: rs)
+            (ticket[p1]: 0) (ticket[p2]: 0) (ticket[p3]: 0) (ticket[p4]: 0) (ticket[p5]: 0) (ticket[p6]: 0) (ticket[p7]: 0)
+            (next: 0) (serve: 0) (cnt: 7)} .
     eq init8 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs) (pc[p6]: rs) (pc[p7]: rs) (pc[p8]: rs)
             (ticket[p1]: 0) (ticket[p2]: 0) (ticket[p3]: 0) (ticket[p4]: 0) (ticket[p5]: 0) (ticket[p6]: 0) (ticket[p7]: 0) (ticket[p8]: 0)
             (next: 0) (serve: 0) (cnt: 8)} .

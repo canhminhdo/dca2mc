@@ -1,12 +1,12 @@
 #!/bin/zsh
 time maude << EOF
 load debug.maude .
-load specs/qlock.maude
+load specs/ticket.maude
 load dca2mc
 set-checker spin
-set-checker-cores 1
-initialize[QLOCK-CHECK, init, lofree]
-set-cores 4
+set-checker-cores 8
+initialize[TICKET-CHECK, init9, lofree]
+set-cores 8
 layerCheck 2 2
 lastCheck
 quit

@@ -6,7 +6,7 @@ import json
 import sys
 
 # setup the protocol under verification
-TAS_PROG, QLOCK_PROG, ANDERSON_PROG, MCS_PROG = ["tas", "qlock", "anderson", "mcs"]
+TAS_PROG, QLOCK_PROG, ANDERSON_PROG, TICKET_PROG, MCS_PROG = ["tas", "qlock", "anderson", "ticket", "mcs"]
 NAME = QLOCK_PROG
 PROCS = 2
 if len(sys.argv) > 1:
@@ -44,6 +44,10 @@ elif NAME == MCS_PROG:
     from parsing.mcs import buildInit
     maude.load('parsing/mcs-loader.maude')
     prog = maude.getModule('MCS-DB')
+elif NAME == TICKET_PROG:
+    from parsing.ticket import buildInit
+    maude.load('parsing/ticket-loader.maude')
+    prog = maude.getModule('TICKET-DB')
 
 def modelCheck(sf, n):
     # prepare specification

@@ -15,15 +15,24 @@ fmod SOUP {D :: TRIV} is
     op _ _ : Soup{D} Soup{D} -> Soup{D} [ctor assoc comm id: empty] .
 endfm
 
+fmod NAT+DEC is
+  pr NAT .
+  op dec : Nat -> Nat .
+  var N : Nat .
+  eq dec(0) = 0 .
+  eq dec(s(N)) = N .
+endfm
+
 fmod OCOMP is
     pr LOC .
     pr PID .
-    pr NAT .
+    pr NAT+DEC .
     sort OComp .
     op (pc[_]:_) : Pid Loc -> OComp [ctor] .
     op (ticket[_]:_) : Pid Nat -> OComp [ctor] .
     op (next:_) : Nat -> OComp [ctor] .
     op (serve:_) : Nat -> OComp [ctor] .
+    op (cnt:_) : Nat -> OComp [ctor] .
 endfm
 
 view OComp from TRIV to OCOMP is
@@ -37,26 +46,26 @@ fmod CONFIG is
     ops init init5 init8 init9 init10 : -> Config .
     eq init = {(pc[p1]: rs) (pc[p2]: rs)
             (ticket[p1]: 0) (ticket[p2]: 0)
-            (next: 0) (serve: 0)} .
+            (next: 0) (serve: 0) (cnt: 2)} .
     eq init5 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs)
             (ticket[p1]: 0) (ticket[p2]: 0) (ticket[p3]: 0) (ticket[p4]: 0) (ticket[p5]: 0)
-            (next: 0) (serve: 0)} .
+            (next: 0) (serve: 0) (cnt: 5)} .
     eq init8 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs) (pc[p6]: rs) (pc[p7]: rs) (pc[p8]: rs)
             (ticket[p1]: 0) (ticket[p2]: 0) (ticket[p3]: 0) (ticket[p4]: 0) (ticket[p5]: 0) (ticket[p6]: 0) (ticket[p7]: 0) (ticket[p8]: 0)
-            (next: 0) (serve: 0)} .
+            (next: 0) (serve: 0) (cnt: 8)} .
     eq init9 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs) (pc[p6]: rs) (pc[p7]: rs) (pc[p8]: rs) (pc[p9]: rs)
             (ticket[p1]: 0) (ticket[p2]: 0) (ticket[p3]: 0) (ticket[p4]: 0) (ticket[p5]: 0) (ticket[p6]: 0) (ticket[p7]: 0) (ticket[p8]: 0) (ticket[p9]: 0)
-            (next: 0) (serve: 0)} .
+            (next: 0) (serve: 0) (cnt: 9)} .
     eq init10 = {(pc[p1]: rs) (pc[p2]: rs) (pc[p3]: rs) (pc[p4]: rs) (pc[p5]: rs) (pc[p6]: rs) (pc[p7]: rs) (pc[p8]: rs) (pc[p9]: rs) (pc[p10]: rs)
             (ticket[p1]: 0) (ticket[p2]: 0) (ticket[p3]: 0) (ticket[p4]: 0) (ticket[p5]: 0) (ticket[p6]: 0) (ticket[p7]: 0) (ticket[p8]: 0) (ticket[p9]: 0) (ticket[p10]: 0)
-            (next: 0) (serve: 0)} .
+            (next: 0) (serve: 0) (cnt: 10)} .
 endfm
 
 mod TICKET is
     inc CONFIG .
 
     var I : Pid .
-    vars N N1 : Nat .
+    vars N N1 C : Nat .
     var OCs : Soup{OComp} .
 
     op #procs : -> Nat . 
@@ -64,7 +73,8 @@ mod TICKET is
 
     rl [inc&setTicket] : {(pc[I]: rs) (next: N) (ticket[I]: N1) OCs} => {(pc[I]: ws) (next: ((N + 1) rem #procs)) (ticket[I]: N) OCs}.
     rl [wait] : {(pc[I]: ws) (ticket[I]: N) (serve: N) OCs} => {(pc[I]: cs) (ticket[I]: N) (serve: N) OCs} .
-    rl [exit] : {(pc[I]: cs) (serve: N) OCs} => {(pc[I]: fs) (serve: ((N + 1) rem #procs)) OCs} .
+    rl [exit] : {(pc[I]: cs) (serve: N) (cnt: C) OCs} => {(pc[I]: fs) (serve: ((N + 1) rem #procs)) (cnt: dec(C)) OCs} .
+    rl [fin] : {(cnt: 0) OCs} => {(cnt: 0) OCs} .
 endm
 
 in model-checker .

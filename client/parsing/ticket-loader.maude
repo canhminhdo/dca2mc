@@ -6,8 +6,8 @@ mod TICKET-DB is
     pr TICKET .
     pr DATABASE-JSON .
 
-    op sf : -> State&Formulas .
-    eq sf = { '`{_`}['__['next:_['0.Zero],'cnt:_['s_^2['0.Zero]],'serve:_['0.Zero],'pc`[_`]:_['p1.Pid,'rs.Loc],'pc`[_`]:_['p2.Pid,'rs.Loc],'ticket`[_`]:_['p1.Pid,'0.Zero],'ticket`[_`]:_['p2.Pid,'0.Zero]]]: [{ '_R_ ['False.FalseFormula ,'_\/_ ['~_ ['inWs1.Prop ],'_U_ ['True.TrueFormula ,'inCs1.Prop ]]]}]} .
+    --- op sf : -> State&Formulas .
+    --- eq sf = { '`{_`}['__['next:_['0.Zero],'cnt:_['s_^2['0.Zero]],'serve:_['0.Zero],'pc`[_`]:_['p1.Pid,'rs.Loc],'pc`[_`]:_['p2.Pid,'rs.Loc],'ticket`[_`]:_['p1.Pid,'0.Zero],'ticket`[_`]:_['p2.Pid,'0.Zero]]]: [{ '_R_ ['False.FalseFormula ,'_\/_ ['~_ ['inWs1.Prop ],'_U_ ['True.TrueFormula ,'inCs1.Prop ]]]}]} .
 
     var OCs : Soup{OComp} .
     var TS : TermSet .

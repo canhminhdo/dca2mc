@@ -1,4 +1,4 @@
-#define N   9	/* number of processes */
+#define N   <procs>	/* number of processes */
 
 mtype = {rs, ws, cs, fs};
 mtype pc[N] = rs;

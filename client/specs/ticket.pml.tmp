@@ -1,0 +1,48 @@
+#define N   9	/* number of processes */
+
+mtype = {rs, ws, cs, fs};
+mtype pc[N] = rs;
+int ticket[N] = 0;
+int next = 0;
+int serve = 0;
+int cnt = N;
+
+init {
+    atomic {
+        <init>
+        int idx = 0;
+        do 
+        :: (idx < N) -> 
+            run proc(idx);
+            idx++;
+        :: else -> break;
+        od
+    }
+}
+
+proctype proc(int idx)
+{
+    do
+	:: atomic {
+        pc[idx] == rs ->
+        pc[idx] = ws;
+        ticket[idx] = next;
+        next = (next + 1) % N;
+    }
+    :: atomic {
+        pc[idx] == ws && ticket[idx] == serve ->
+        pc[idx] = cs;
+    }
+    :: atomic {
+        pc[idx] == cs ->
+        pc[idx] = fs;
+        serve = (serve + 1) % N;
+        cnt--;
+    }
+    :: cnt == 0 ->
+        break;
+    od
+    assert(cnt == 0);
+}
+
+ltl lofree { <formula> }
